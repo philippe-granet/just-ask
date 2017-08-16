@@ -1,4 +1,4 @@
-![Build Status](https://travis-ci.org/RationaleEmotions/just-ask.svg?branch=master)
+![Build Status](https://travis-ci.org/philippe-granet/just-ask.svg?branch=master)
 
 # just-ask
 

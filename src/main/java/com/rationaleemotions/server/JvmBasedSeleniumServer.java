@@ -4,18 +4,19 @@ import com.rationaleemotions.servlets.EnrollServlet;
 import org.openqa.grid.internal.TestSession;
 import org.openqa.grid.selenium.GridLauncherV3;
 import org.openqa.selenium.net.PortProber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents a {@link ISeleniumServer} implementation that is backed by a new JVM which executes the
  * selenium server as a separate process.
  */
 public class JvmBasedSeleniumServer implements ISeleniumServer {
-    private static final Logger LOG = Logger.getLogger(Marker.class.getEnclosingClass().getName());
+	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final String JAVA = System.getProperty("java.home") + File.separator + "bin" + File.separator +
         "java";
     private static final String CP = "-cp";
@@ -45,9 +46,8 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
     public int startServer(TestSession session) throws ServerException {
         port = PortProber.findFreePort();
         String[] args = getArgs(port);
-        if (LOG.isLoggable(Level.INFO)) {
-            LOG.info(String.format("Spawning a Selenium server using the arguments [%s]", Arrays.toString(args)));
-        }
+        LOG.info("Spawning a Selenium server using the arguments [{}]", Arrays.toString(args));
+        
         ProcessBuilder pb = new ProcessBuilder(getArgs(port));
         try {
             this.process = pb.start();
@@ -70,8 +70,4 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
     public String getHost() {
         return EnrollServlet.getHubHost();
     }
-
-    private interface Marker {
-    }
-
 }

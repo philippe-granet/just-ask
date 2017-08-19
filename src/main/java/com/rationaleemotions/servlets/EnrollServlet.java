@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
+import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
@@ -32,6 +31,8 @@ import org.openqa.selenium.Platform;
 import org.openqa.selenium.net.NetworkUtils;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.internal.HttpClientFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.google.common.base.Preconditions;
@@ -48,7 +49,10 @@ import com.rationaleemotions.server.DockerBasedSeleniumServer;
  * ghost node which will act as a proxy for all proxies.
  */
 public class EnrollServlet extends RegistryBasedServlet {
-	private static String hubHost;
+
+	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+    private static String hubHost;
 
 	static {
 		new EnrollServletPoller().start();
@@ -113,7 +117,7 @@ public class EnrollServlet extends RegistryBasedServlet {
 					}
 
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOG.error(e.getMessage(), e);
 				} finally {
 					httpClientFactory.close();
 				}

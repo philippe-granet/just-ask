@@ -1,8 +1,10 @@
 package com.rationaleemotions.server;
 
 import static com.rationaleemotions.config.ConfigReader.getInstance;
+import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
+import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 
-import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,10 +16,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.openqa.selenium.net.PortProber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.rationaleemotions.config.BrowserInfo;
@@ -36,18 +38,13 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.PortBinding;
-import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
-import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 
 /**
  * A Helper class that facilitates interaction with a Docker Daemon.
  */
 class DockerHelper {
-    private interface Marker {
-    }
-
-    private static final Logger LOG = Logger.getLogger(Marker.class.getEnclosingClass().getName());
-
+    private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    
     public static final String UNIX_SCHEME = "unix";
     
     private DockerHelper() {
@@ -61,14 +58,13 @@ class DockerHelper {
      * @throws InterruptedException - In case of any issues.
      */
     static void killAndRemoveContainer(String id) throws DockerException, InterruptedException {
-        if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine("Killing and removing the container : [" + id + "].");
-        }
+        LOG.debug("Killing and removing the container : [{}].", id);
+        
         try {
 			getClient().killContainer(id);
 		} catch (DockerException | InterruptedException e) {
 			// Fail if containers already stopped
-			LOG.log(Level.SEVERE,"Fail to kill container "+id,e);
+			LOG.error("Fail to kill container {}", id, e);
 		}
         getClient().removeContainer(id);
     }
@@ -79,9 +75,7 @@ class DockerHelper {
      * @throws InterruptedException - In case of any issues.
      */
     static void removeContainer(String id) throws DockerException, InterruptedException {
-        if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine("Removing the container : [" + id + "].");
-        }
+    	LOG.debug("Removing the container : [{}].", id);
         getClient().removeContainer(id);
     }
 
@@ -97,9 +91,8 @@ class DockerHelper {
      * @throws ServerException 
      */
     static ContainerInfo startContainerFor(ContainerAttributes containerAttributes) throws DockerException, InterruptedException, ServerException {
-        if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine("Starting of container for the image [" + containerAttributes.getImage() + "].");
-        }
+    	LOG.debug("Starting of container for the image [{}].", containerAttributes.getImage());
+
         Preconditions.checkState("ok".equalsIgnoreCase(getClient().ping()),
             "Ensuring that the Docker Daemon is up and running.");
         DockerHelper.predownloadImagesIfRequired();
@@ -145,13 +138,9 @@ class DockerHelper {
         if (! containerInfo.state().running()) {
             // Start container
             getClient().startContainer(id);
-            if (LOG.isLoggable(Level.FINE)) {
-                LOG.info("Starting "+containerInfo.name());
-            }
+            LOG.debug("Starting {}", containerInfo.name());
         } else {
-            if (LOG.isLoggable(Level.FINE)) {
-                LOG.info(containerInfo.name() + " was already running.");
-            }
+        	LOG.debug("{} was already running.", containerInfo.name());
         }
         
         AtomicInteger attempts = new AtomicInteger(0);
@@ -164,21 +153,20 @@ class DockerHelper {
             if(exitCode==null){
             	exitCode=0;
             }
-            if (LOG.isLoggable(Level.FINE)) {
-                LOG.fine(String.format("Container %s with id %s - Information %s", containerInfo.name(), id, containerInfo));
-            }
+            LOG.debug("Container {} with id {} - Information {}", containerInfo.name(), id, containerInfo);
+
         }while(!containerInfo.state().running() && exitCode==0 && attempts.incrementAndGet()<=10);
         
         if(!containerInfo.state().running() || exitCode!=0){
         	try (LogStream stream = getClient().logs(id, stdout(), stderr())) {
         		final String logs;
                 logs = stream.readFully();
-                LOG.severe("Container logs:\n"+logs);
+                LOG.error("Container logs:\n{}", logs);
             	
             } catch (Exception e) {
-            	LOG.log(Level.SEVERE,"Fail to retrieve container logs...",e);
+            	LOG.error("Fail to retrieve container logs...",e);
 			}
-        	LOG.log(Level.SEVERE,String.format("Failed to start Container %s with id %s - Information %s", containerInfo.name(), id, containerInfo));
+        	LOG.error("Failed to start Container {} with id {} - Information {}", containerInfo.name(), id, containerInfo);
         	
         	if(exitCode!=0){
         		//Fail to start container, remove it!
@@ -192,9 +180,8 @@ class DockerHelper {
         }
 
         ContainerInfo info = new ContainerInfo(id, containerPort);
-        if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine("******" + info + "******");
-        }
+        LOG.debug("******{}******", info);
+
         return info;
     }
 

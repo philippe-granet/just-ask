@@ -1,11 +1,15 @@
 package com.rationaleemotions.proxy;
 
-import com.google.common.collect.MapMaker;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.rationaleemotions.config.ConfigReader;
-import com.rationaleemotions.internal.ProxiedTestSlot;
-import com.rationaleemotions.server.SpawnedServer;
+import static org.openqa.grid.web.servlet.handler.RequestType.START_SESSION;
+import static org.openqa.grid.web.servlet.handler.RequestType.STOP_SESSION;
+
+import java.lang.invoke.MethodHandles;
+import java.net.URL;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.openqa.grid.common.RegistrationRequest;
 import org.openqa.grid.common.SeleniumProtocol;
 import org.openqa.grid.common.exception.GridException;
@@ -17,28 +21,24 @@ import org.openqa.grid.selenium.proxy.DefaultRemoteProxy;
 import org.openqa.grid.web.servlet.handler.RequestType;
 import org.openqa.grid.web.servlet.handler.SeleniumBasedRequest;
 import org.openqa.selenium.remote.CapabilityType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.net.URL;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static org.openqa.grid.web.servlet.handler.RequestType.START_SESSION;
-import static org.openqa.grid.web.servlet.handler.RequestType.STOP_SESSION;
+import com.google.common.collect.MapMaker;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.rationaleemotions.config.ConfigReader;
+import com.rationaleemotions.internal.ProxiedTestSlot;
+import com.rationaleemotions.server.SpawnedServer;
 
 /**
  * Represents a simple {@link DefaultRemoteProxy} implementation that relies on spinning off a server
  * and then routing the session traffic to the spawned server.
  */
 public class GhostProxy extends DefaultRemoteProxy {
-    private interface Marker {
-    }
+	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private static final Logger LOG = Logger.getLogger(Marker.class.getEnclosingClass().getName());
-    private Map<String, SpawnedServer> servers = new MapMaker().initialCapacity(500).makeMap();
+	private Map<String, SpawnedServer> servers = new MapMaker().initialCapacity(500).makeMap();
 
     public GhostProxy(RegistrationRequest request, Registry registry) {
         super(request, registry);
@@ -58,10 +58,8 @@ public class GhostProxy extends DefaultRemoteProxy {
             return null;
         }
 
-        if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine(String.format("Trying to create a new session on node %s", this));
-        }
-
+        LOG.debug("Trying to create a new session on node {}", this.toString());
+        
         // any slot left for the given app ?
         for (TestSlot testslot : getTestSlots()) {
             TestSession session = testslot.getNewSession(requestedCapability);
@@ -86,7 +84,7 @@ public class GhostProxy extends DefaultRemoteProxy {
                 }
             } catch (Exception e) {
                 getRegistry().terminate(session, SessionTerminationReason.CREATIONFAILED);
-                LOG.log(Level.SEVERE,"Failed creating a session. Root cause :" + e.getMessage(),e);
+                LOG.error("Failed creating a session. Root cause :" + e.getMessage(),e);
                 throw e;
             }
         }
@@ -124,9 +122,8 @@ public class GhostProxy extends DefaultRemoteProxy {
             URL url = new URL(key);
             servers.put(key, server);
             ((ProxiedTestSlot) session.getSlot()).setRemoteURL(url);
-            if (LOG.isLoggable(Level.INFO)) {
-                LOG.info(String.format("Forwarding session to :%s", session.getSlot().getRemoteURL()));
-            }
+            LOG.info("Forwarding session to :{}", session.getSlot().getRemoteURL());
+
         } catch (Exception e) {
             throw new GridException(e.getMessage(), e);
         }

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,7 +17,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A singleton instance that works as a configuration data source.
@@ -26,12 +29,7 @@ public class ConfigReader {
     private static final String CONFIG = System.getProperty(JVM_ARG);
     private Configuration configuration;
 
-
-    private interface Marker {
-    }
-
-
-    private static final Logger LOG = Logger.getLogger(Marker.class.getEnclosingClass().getName());
+	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * @return - A {@link ConfigReader} that represents the configuration.
@@ -119,20 +117,20 @@ public class ConfigReader {
             Preconditions.checkState(stream != null, "Unable to load configuration file.");
             instance.configuration = new Gson().fromJson(new JsonReader(new InputStreamReader(stream)), Configuration
                 .class);
-            LOG.info(String.format("Working with the Configuration : %s", instance.configuration));
+            LOG.info("Working with the Configuration : {}", instance.configuration);
         }
     }
 
     private static InputStream getStream() {
         try {
-            LOG.fine(String.format("Attempting to read %s as resource.", CONFIG));
+            LOG.debug("Attempting to read {} as resource.", CONFIG);
             InputStream stream =  Thread.currentThread().getContextClassLoader().getResourceAsStream(CONFIG);
             if (stream == null) {
-                LOG.fine(String.format("Re-attempting to read %s as a local file.", CONFIG));
+                LOG.debug("Re-attempting to read {} as a local file.", CONFIG);
                 return new FileInputStream(new File(CONFIG));
             }
         } catch (Exception e) {
-        	LOG.severe(e.getMessage());
+        	LOG.error(e.getMessage(), e);
         }
         return null;
     }

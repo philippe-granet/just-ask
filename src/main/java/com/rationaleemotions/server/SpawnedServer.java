@@ -1,22 +1,20 @@
 package com.rationaleemotions.server;
 
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.openqa.grid.internal.TestSession;
 import org.openqa.selenium.remote.CapabilityType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
 
 public class SpawnedServer {
-    private interface Marker {
-    }
-
-    private static final Logger LOG = Logger.getLogger(Marker.class.getEnclosingClass().getName());
+	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private ISeleniumServer server;
 
@@ -41,9 +39,8 @@ public class SpawnedServer {
         if(!isServerRunning){
         	 throw new ServerException(String.format("Failed to access Selenium Node"));
         }
-        if (LOG.isLoggable(Level.INFO)) {
-            LOG.info(String.format("***Server started on [%d]****", port));
-        }
+        LOG.info("***Server started on [{}]****", port);
+        
         return server;
     }
 
@@ -64,7 +61,7 @@ public class SpawnedServer {
         BrowserVersionInfo browserVersion = ConfigReader.getInstance().getBrowserVersion(browser,version);
         String serverImpl=browserVersion.getImplementation();
         Class<?> clazz = Class.forName(serverImpl);
-        LOG.info("Working with the implementation : [" + clazz.getCanonicalName() + "].");
+        LOG.info("Working with the implementation : [{}].", clazz.getCanonicalName());
         if (ISeleniumServer.class.isAssignableFrom(clazz)) {
             return clazz;
         }
@@ -75,9 +72,9 @@ public class SpawnedServer {
     public void shutdown() {
         try {
             server.shutdownServer();
-            LOG.info("***Server running on [" + getPort() + "] has been stopped****");
+            LOG.info("***Server running on [{}] has been stopped****", getPort());
         } catch (Exception e) {
-            LOG.log(Level.SEVERE,e.getMessage(),e);
+            LOG.error(e.getMessage(),e);
         }
     }
 

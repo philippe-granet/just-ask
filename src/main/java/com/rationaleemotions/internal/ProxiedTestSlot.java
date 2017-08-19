@@ -33,12 +33,7 @@ public class ProxiedTestSlot extends TestSlot {
         return null;
     }
 
-    @Override
-    public boolean matches(Map<String, Object> desiredCapabilities) {
-        return true;
-    }
-
     public void setRemoteURL(URL remoteURL) {
-        this.remoteURL = remoteURL;
+    	this.remoteURL = remoteURL;
     }
 }

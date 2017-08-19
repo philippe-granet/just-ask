@@ -1,16 +1,4 @@
 {
-  "capabilities": [
-    {
-      "browserName": "firefox",
-      "maxInstances": 1,
-      "platform" : "ANY"
-    },
-    {
-      "browserName": "chrome",
-      "maxInstances": 1,
-      "platform" : "ANY"
-    }
-  ],
   "configuration": {
     "proxy": "com.rationaleemotions.proxy.GhostProxy",
     "maxSession": 1,

@@ -1,6 +1,7 @@
 package com.rationaleemotions.config;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 
@@ -9,7 +10,10 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -58,26 +62,35 @@ public class ConfigReader {
     }
 
     /**
-     * @return - The port number that is exposed in the docker image to which traffic is to be routed to.
+     * @return - The browser to target (target could for e.g., be docker image) mapping.
      */
-    public String getDockerImagePort() {
-        if (configuration == null) {
-            return null;
+    public Map<String, BrowserInfo> getBrowsers() {
+        Map<String, BrowserInfo> browsers = new HashMap<>();
+        for (BrowserInfo each : configuration.getBrowsers()) {
+        	browsers.put(each.getBrowser(), each);
         }
-        return configuration.getDockerImagePort();
+        return Collections.unmodifiableMap(new LinkedHashMap<String, BrowserInfo>(browsers));
     }
-
+    
     /**
      * @return - The browser to target (target could for e.g., be docker image) mapping.
      */
-    public Map<String, MappingInfo> getMapping() {
-        Map<String, MappingInfo> mapping = new HashMap<>();
-        for (MappingInfo each : configuration.getMapping()) {
-            mapping.put(each.getBrowser(), each);
+    public Map<String, BrowserVersionInfo> getBrowserVersions(String browser) {
+    	Map<String, BrowserVersionInfo> browserVersions = new HashMap<>();
+        for (BrowserVersionInfo each : getBrowsers().get(browser).getVersions()) {
+        	browserVersions.put(each.getVersion(), each);
         }
-        return mapping;
+        return Collections.unmodifiableMap(new LinkedHashMap<String, BrowserVersionInfo>(browserVersions));
     }
-
+    
+	public BrowserVersionInfo getBrowserVersion(String browser, String version) {
+		BrowserInfo browserInfo = getBrowsers().get(browser);
+		if(Strings.isNullOrEmpty(version)){
+			return getBrowserVersions(browser).get(browserInfo.getDefaultVersion());
+		}else{
+			return getBrowserVersions(browser).get(version);
+		}
+	}
     /**
      * @return - How many number of sessions are to be honoured at any given point in time.
      * This kind of resembles the threshold value after which new session requests would be put into the
@@ -119,7 +132,7 @@ public class ConfigReader {
                 return new FileInputStream(new File(CONFIG));
             }
         } catch (Exception e) {
-                //Gobble exception
+        	LOG.severe(e.getMessage());
         }
         return null;
     }
@@ -128,9 +141,8 @@ public class ConfigReader {
     private static class Configuration {
         private String dockerRestApiUri;
         private String localhost;
-        private String dockerImagePort;
         private int maxSession;
-        private List<MappingInfo> mapping;
+        private List<BrowserInfo> browsers;
 
         public String getDockerRestApiUri() {
             return dockerRestApiUri;
@@ -140,16 +152,12 @@ public class ConfigReader {
             return localhost;
         }
 
-        public String getDockerImagePort() {
-            return dockerImagePort;
-        }
-
         public int getMaxSession() {
             return maxSession;
         }
 
-        public List<MappingInfo> getMapping() {
-            return mapping;
+        public List<BrowserInfo> getBrowsers() {
+            return Collections.unmodifiableList(new LinkedList<BrowserInfo>(browsers));
         }
 
         @Override
@@ -157,9 +165,8 @@ public class ConfigReader {
             return "Configuration{" +
                 "dockerRestApiUri='" + dockerRestApiUri + '\'' +
                 ", localhost='" + localhost + '\'' +
-                ", dockerImagePort='" + dockerImagePort + '\'' +
                 ", maxSession=" + maxSession +
-                ", mapping=" + mapping +
+                ", browsers=" + browsers +
                 '}';
         }
     }

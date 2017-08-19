@@ -61,7 +61,7 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
     public void shutdownServer() {
         if (process != null) {
             process.destroyForcibly();
-            LOG.warning("***Server shutdown****");
+            LOG.info("***Server shutdown****");
             process = null;
         }
     }

@@ -2,6 +2,7 @@ package com.rationaleemotions.proxy;
 
 import com.google.common.collect.MapMaker;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.internal.ProxiedTestSlot;
 import com.rationaleemotions.server.SpawnedServer;
@@ -33,9 +34,6 @@ import static org.openqa.grid.web.servlet.handler.RequestType.STOP_SESSION;
  * and then routing the session traffic to the spawned server.
  */
 public class GhostProxy extends DefaultRemoteProxy {
-    private final AtomicInteger counter = new AtomicInteger(1);
-
-
     private interface Marker {
     }
 
@@ -55,7 +53,7 @@ public class GhostProxy extends DefaultRemoteProxy {
     @Override
     public TestSession getNewSession(Map<String, Object> requestedCapability) {
 
-        if (counter.get() > ConfigReader.getInstance().getMaxSession()) {
+        if (getTotalUsed() >= ConfigReader.getInstance().getMaxSession()) {
             LOG.info("Waiting for remote nodes to be available");
             return null;
         }
@@ -83,12 +81,12 @@ public class GhostProxy extends DefaultRemoteProxy {
                     startServerForTestSession(session);
                 } else {
                     String msg = "Missing target mapping. Available mappings are " +
-                        ConfigReader.getInstance().getMapping();
+                        ConfigReader.getInstance().getBrowsers();
                     throw new IllegalStateException(msg);
                 }
             } catch (Exception e) {
                 getRegistry().terminate(session, SessionTerminationReason.CREATIONFAILED);
-                LOG.severe("Failed creating a session. Root cause :" + e.getMessage());
+                LOG.log(Level.SEVERE,"Failed creating a session. Root cause :" + e.getMessage(),e);
                 throw e;
             }
         }
@@ -99,22 +97,14 @@ public class GhostProxy extends DefaultRemoteProxy {
     public void afterCommand(TestSession session, HttpServletRequest request, HttpServletResponse response) {
         super.afterCommand(session, request, response);
         RequestType type = identifyRequestType(request);
-        if (type == STOP_SESSION) {
+        if (type == STOP_SESSION || (type == START_SESSION && response.getStatus() != HttpServletResponse.SC_OK)) {
             stopServerForTestSession(session);
-            if (LOG.isLoggable(Level.INFO)) {
-                LOG.info(String.format("Counter value after decrementing : %d", counter.decrementAndGet()));
-            }
         }
     }
 
     @Override
-    public boolean hasCapability(Map<String, Object> requestedCapability) {
-        return true;
-    }
-
-    @Override
     public JsonObject getStatus() {
-        return new JsonObject();
+    	return new JsonParser().parse("{\"status\":0,\"value\":{\"build\":{\"version\":\"&#128123;\"}}}").getAsJsonObject();
     }
 
     private RequestType identifyRequestType(HttpServletRequest request) {
@@ -124,7 +114,7 @@ public class GhostProxy extends DefaultRemoteProxy {
     private boolean processTestSession(TestSession session) {
         Map<String, Object> requestedCapabilities = session.getRequestedCapabilities();
         String browser = (String) requestedCapabilities.get(CapabilityType.BROWSER_NAME);
-        return ConfigReader.getInstance().getMapping().containsKey(browser);
+        return ConfigReader.getInstance().getBrowsers().containsKey(browser);
     }
 
     private void startServerForTestSession(TestSession session) {
@@ -136,7 +126,6 @@ public class GhostProxy extends DefaultRemoteProxy {
             ((ProxiedTestSlot) session.getSlot()).setRemoteURL(url);
             if (LOG.isLoggable(Level.INFO)) {
                 LOG.info(String.format("Forwarding session to :%s", session.getSlot().getRemoteURL()));
-                LOG.info(String.format("Counter value after incrementing : %d", counter.incrementAndGet()));
             }
         } catch (Exception e) {
             throw new GridException(e.getMessage(), e);

@@ -60,10 +60,10 @@ public interface ISeleniumServer {
      * Represents all exceptions that can arise out of attempts to manipulate server.
      */
     class ServerException extends Exception {
-        public ServerException(String message) {
+        public ServerException(final String message) {
             super(message);
         }
-        public ServerException(String message, Throwable e) {
+        public ServerException(final String message, final Throwable e) {
             super(message, e);
         }
     }

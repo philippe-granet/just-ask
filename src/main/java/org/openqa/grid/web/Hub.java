@@ -197,7 +197,7 @@ public class Hub {
 		parameters.put(Parameter.MONITORING_PATH, "/javamelody/");
 		if (parameters != null) {
 			for (final Map.Entry<Parameter, String> entry : parameters.entrySet()) {
-				final net.bull.javamelody.Parameter parameter = entry.getKey();
+				final Parameter parameter = entry.getKey();
 				final String value = entry.getValue();
 				filterHolder.setInitParameter(parameter.getCode(), value);
 			}

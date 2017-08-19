@@ -52,7 +52,7 @@ public class EnrollServlet extends RegistryBasedServlet {
 
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private static String hubHost;
+	private static String hubHost;
 
 	static {
 		new EnrollServletPoller().start();
@@ -82,47 +82,6 @@ public class EnrollServlet extends RegistryBasedServlet {
 			config.port = 4444;
 		}
 		return config;
-	}
-
-	private static class EnrollServletPoller extends Thread {
-
-		private static long sleepTimeBetweenChecks = 500;
-		private static GridHubConfiguration gridHubConfiguration = getGridHubConfiguration();
-
-		protected long getSleepTimeBetweenChecks() {
-			return sleepTimeBetweenChecks;
-		}
-
-		@Override
-		public void run() {
-			while (true) {
-				try {
-					Thread.sleep(getSleepTimeBetweenChecks());
-				} catch (InterruptedException e) {
-					return;
-				}
-				HttpClientFactory httpClientFactory = new HttpClientFactory();
-				try {
-					final URL enrollServletEndpoint = new URL(String.format("http://%s:%d/grid/admin/%s",
-							gridHubConfiguration.host, gridHubConfiguration.port, EnrollServlet.class.getSimpleName()));
-
-					BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("GET",
-							enrollServletEndpoint.toExternalForm());
-					HttpHost host = new HttpHost(enrollServletEndpoint.getHost(), enrollServletEndpoint.getPort());
-					HttpClient client = httpClientFactory.getHttpClient();
-					HttpResponse response = client.execute(host, request);
-
-					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-						return;
-					}
-
-				} catch (IOException e) {
-					LOG.error(e.getMessage(), e);
-				} finally {
-					httpClientFactory.close();
-				}
-			}
-		}
 	}
 
 	public EnrollServlet() {
@@ -202,4 +161,44 @@ public class EnrollServlet extends RegistryBasedServlet {
 		return hubHost;
 	}
 
+	private static class EnrollServletPoller extends Thread {
+
+		private static long sleepTimeBetweenChecks = 500;
+		private static GridHubConfiguration gridHubConfiguration = getGridHubConfiguration();
+
+		protected long getSleepTimeBetweenChecks() {
+			return sleepTimeBetweenChecks;
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				try {
+					Thread.sleep(getSleepTimeBetweenChecks());
+				} catch (InterruptedException e) {
+					return;
+				}
+				HttpClientFactory httpClientFactory = new HttpClientFactory();
+				try {
+					final URL enrollServletEndpoint = new URL(String.format("http://%s:%d/grid/admin/%s",
+							gridHubConfiguration.host, gridHubConfiguration.port, EnrollServlet.class.getSimpleName()));
+
+					BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("GET",
+							enrollServletEndpoint.toExternalForm());
+					HttpHost host = new HttpHost(enrollServletEndpoint.getHost(), enrollServletEndpoint.getPort());
+					HttpClient client = httpClientFactory.getHttpClient();
+					HttpResponse response = client.execute(host, request);
+
+					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+						return;
+					}
+
+				} catch (IOException e) {
+					LOG.error(e.getMessage(), e);
+				} finally {
+					httpClientFactory.close();
+				}
+			}
+		}
+	}
 }

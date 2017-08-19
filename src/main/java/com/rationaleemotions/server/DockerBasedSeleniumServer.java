@@ -24,7 +24,7 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
 	protected DockerHelper.ContainerInfo containerInfo;
 
     @Override
-    public int startServer(TestSession session) throws ServerException {
+    public int startServer(final TestSession session) throws ServerException {
         try {
         	containerInfo = DockerHelper.startContainerFor(getContainerAttributes(session.getRequestedCapabilities()));
             session.put("container", containerInfo);
@@ -58,7 +58,7 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
         }
     }
     
-    private ContainerAttributes getContainerAttributes(Map<String, Object> requestedCapabilities) {
+    private ContainerAttributes getContainerAttributes(final Map<String, Object> requestedCapabilities) {
     	String browser = (String) requestedCapabilities.get(CapabilityType.BROWSER_NAME);
     	String version = (String) requestedCapabilities.get(CapabilityType.BROWSER_VERSION);
     	

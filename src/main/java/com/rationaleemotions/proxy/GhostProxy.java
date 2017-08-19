@@ -40,18 +40,18 @@ public class GhostProxy extends DefaultRemoteProxy {
 
 	private Map<String, SpawnedServer> servers = new MapMaker().initialCapacity(500).makeMap();
 
-    public GhostProxy(RegistrationRequest request, Registry registry) {
+    public GhostProxy(final RegistrationRequest request, final Registry registry) {
         super(request, registry);
         LOG.info("Maximum sessions supported : " + ConfigReader.getInstance().getMaxSession());
     }
 
     @Override
-    public TestSlot createTestSlot(SeleniumProtocol protocol, Map<String, Object> capabilities) {
+    public TestSlot createTestSlot(final SeleniumProtocol protocol, final Map<String, Object> capabilities) {
         return new ProxiedTestSlot(this, protocol, capabilities);
     }
 
     @Override
-    public TestSession getNewSession(Map<String, Object> requestedCapability) {
+    public TestSession getNewSession(final Map<String, Object> requestedCapability) {
 
         if (getTotalUsed() >= ConfigReader.getInstance().getMaxSession()) {
             LOG.info("Waiting for remote nodes to be available");
@@ -71,7 +71,7 @@ public class GhostProxy extends DefaultRemoteProxy {
     }
 
     @Override
-    public void beforeCommand(TestSession session, HttpServletRequest request, HttpServletResponse response) {
+    public void beforeCommand(final TestSession session, final HttpServletRequest request, final HttpServletResponse response) {
         RequestType type = identifyRequestType(request);
         if (type == START_SESSION) {
             try {
@@ -92,7 +92,7 @@ public class GhostProxy extends DefaultRemoteProxy {
     }
 
     @Override
-    public void afterCommand(TestSession session, HttpServletRequest request, HttpServletResponse response) {
+    public void afterCommand(final TestSession session, final HttpServletRequest request, final HttpServletResponse response) {
         super.afterCommand(session, request, response);
         RequestType type = identifyRequestType(request);
         if (type == STOP_SESSION || (type == START_SESSION && response.getStatus() != HttpServletResponse.SC_OK)) {
@@ -105,17 +105,17 @@ public class GhostProxy extends DefaultRemoteProxy {
     	return new JsonParser().parse("{\"status\":0,\"value\":{\"build\":{\"version\":\"&#128123;\"}}}").getAsJsonObject();
     }
 
-    private RequestType identifyRequestType(HttpServletRequest request) {
+    private RequestType identifyRequestType(final HttpServletRequest request) {
         return SeleniumBasedRequest.createFromRequest(request, getRegistry()).extractRequestType();
     }
 
-    private boolean processTestSession(TestSession session) {
+    private boolean processTestSession(final TestSession session) {
         Map<String, Object> requestedCapabilities = session.getRequestedCapabilities();
         String browser = (String) requestedCapabilities.get(CapabilityType.BROWSER_NAME);
         return ConfigReader.getInstance().getBrowsers().containsKey(browser);
     }
 
-    private void startServerForTestSession(TestSession session) {
+    private void startServerForTestSession(final TestSession session) {
         try {
             SpawnedServer server = SpawnedServer.spawnInstance(session);
             String key = "http://" + server.getHost() + ":" + server.getPort();
@@ -129,7 +129,7 @@ public class GhostProxy extends DefaultRemoteProxy {
         }
     }
 
-    private void stopServerForTestSession(TestSession session) {
+    private void stopServerForTestSession(final TestSession session) {
         URL url = session.getSlot().getRemoteURL();
         String key = String.format("%s://%s:%d", url.getProtocol(), url.getHost(), url.getPort());
         SpawnedServer localServer = servers.get(key);
@@ -138,5 +138,4 @@ public class GhostProxy extends DefaultRemoteProxy {
             servers.remove(key);
         }
     }
-
 }

@@ -73,7 +73,7 @@ public class ConfigReader {
     /**
      * @return - The browser to target (target could for e.g., be docker image) mapping.
      */
-    public Map<String, BrowserVersionInfo> getBrowserVersions(String browser) {
+    public Map<String, BrowserVersionInfo> getBrowserVersions(final String browser) {
     	Map<String, BrowserVersionInfo> browserVersions = new HashMap<>();
         for (BrowserVersionInfo each : getBrowsers().get(browser).getVersions()) {
         	browserVersions.put(each.getVersion(), each);
@@ -81,7 +81,7 @@ public class ConfigReader {
         return Collections.unmodifiableMap(new LinkedHashMap<String, BrowserVersionInfo>(browserVersions));
     }
     
-	public BrowserVersionInfo getBrowserVersion(String browser, String version) {
+	public BrowserVersionInfo getBrowserVersion(final String browser, final String version) {
 		BrowserInfo browserInfo = getBrowsers().get(browser);
 		if(Strings.isNullOrEmpty(version)){
 			return getBrowserVersions(browser).get(browserInfo.getDefaultVersion());
@@ -101,6 +101,20 @@ public class ConfigReader {
         return configuration.getMaxSession();
     }
 
+    private static InputStream getStream() {
+        try {
+            LOG.debug("Attempting to read {} as resource.", CONFIG);
+            InputStream stream =  Thread.currentThread().getContextClassLoader().getResourceAsStream(CONFIG);
+            if (stream == null) {
+                LOG.debug("Re-attempting to read {} as a local file.", CONFIG);
+                return new FileInputStream(new File(CONFIG));
+            }
+        } catch (Exception e) {
+        	LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+    
     private static class ReaderInstance {
         static final ConfigReader instance = new ConfigReader();
 
@@ -120,21 +134,6 @@ public class ConfigReader {
             LOG.info("Working with the Configuration : {}", instance.configuration);
         }
     }
-
-    private static InputStream getStream() {
-        try {
-            LOG.debug("Attempting to read {} as resource.", CONFIG);
-            InputStream stream =  Thread.currentThread().getContextClassLoader().getResourceAsStream(CONFIG);
-            if (stream == null) {
-                LOG.debug("Re-attempting to read {} as a local file.", CONFIG);
-                return new FileInputStream(new File(CONFIG));
-            }
-        } catch (Exception e) {
-        	LOG.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
 
     private static class Configuration {
         private String dockerRestApiUri;

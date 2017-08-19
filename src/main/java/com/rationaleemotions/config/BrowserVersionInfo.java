@@ -22,7 +22,7 @@ public class BrowserVersionInfo {
         return version;
     }
 
-    public String getTargetAttribute(String attribute) {
+    public String getTargetAttribute(final String attribute) {
         JsonElement result=target.get(attribute);
         if(result==null || result.isJsonNull()){
         	return null;
@@ -30,7 +30,7 @@ public class BrowserVersionInfo {
         }
         return result.getAsString();
     }
-    public List<String> getTargetAttributeAsList(String attribute) {
+    public List<String> getTargetAttributeAsList(final String attribute) {
         JsonElement result=target.get(attribute);
         if(result==null || result.isJsonNull()){
         	return null;

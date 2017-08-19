@@ -26,7 +26,7 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
     private Process process;
     private int port;
 
-    private static String[] getArgs(int port) {
+    private static String[] getArgs(final int port) {
         return new String[] {
             JAVA,
             CP,
@@ -43,7 +43,7 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
     }
 
     @Override
-    public int startServer(TestSession session) throws ServerException {
+    public int startServer(final TestSession session) throws ServerException {
         port = PortProber.findFreePort();
         String[] args = getArgs(port);
         LOG.info("Spawning a Selenium server using the arguments [{}]", Arrays.toString(args));

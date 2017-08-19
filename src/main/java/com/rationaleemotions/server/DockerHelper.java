@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.rationaleemotions.config.BrowserInfo;
 import com.rationaleemotions.config.BrowserVersionInfo;
-import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
 import com.rationaleemotions.server.docker.ContainerAttributes;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -57,7 +56,7 @@ class DockerHelper {
      * @throws DockerException      - In case of any issues.
      * @throws InterruptedException - In case of any issues.
      */
-    static void killAndRemoveContainer(String id) throws DockerException, InterruptedException {
+    static void killAndRemoveContainer(final String id) throws DockerException, InterruptedException {
         LOG.debug("Killing and removing the container : [{}].", id);
         
         try {
@@ -74,7 +73,7 @@ class DockerHelper {
      * @throws DockerException      - In case of any issues.
      * @throws InterruptedException - In case of any issues.
      */
-    static void removeContainer(String id) throws DockerException, InterruptedException {
+    static void removeContainer(final String id) throws DockerException, InterruptedException {
     	LOG.debug("Removing the container : [{}].", id);
         getClient().removeContainer(id);
     }
@@ -90,7 +89,7 @@ class DockerHelper {
      * @throws InterruptedException - In case of any issues.
      * @throws ServerException 
      */
-    static ContainerInfo startContainerFor(ContainerAttributes containerAttributes) throws DockerException, InterruptedException, ServerException {
+    static ContainerInfo startContainerFor(final ContainerAttributes containerAttributes) throws DockerException, InterruptedException, ServerException {
     	LOG.debug("Starting of container for the image [{}].", containerAttributes.getImage());
 
         Preconditions.checkState("ok".equalsIgnoreCase(getClient().ping()),
@@ -99,7 +98,7 @@ class DockerHelper {
 
         final Map<String, List<PortBinding>> portBindings = new HashMap<>();
 
-        String localHost = ConfigReader.getInstance().getLocalhost();
+        String localHost = getInstance().getLocalhost();
         List<String> exposedPorts=new LinkedList<>();
         if(containerAttributes.getPorts()!=null){
         	exposedPorts=new LinkedList<>(containerAttributes.getPorts());
@@ -236,7 +235,7 @@ class DockerHelper {
         private int port;
         private String containerId;
 
-        ContainerInfo(String containerId, int port) {
+        ContainerInfo(final String containerId, final int port) {
             this.port = port;
             this.containerId = containerId;
         }
@@ -259,7 +258,7 @@ class DockerHelper {
     private static class DockerCleanup implements Runnable {
         private DockerClient client;
 
-        DockerCleanup(DockerClient client) {
+        DockerCleanup(final DockerClient client) {
             this.client = client;
         }
 

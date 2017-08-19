@@ -18,7 +18,7 @@ public class ContainerAttributes {
         return this.image;
     }
 
-	public void setImage(String image) {
+	public void setImage(final String image) {
 		this.image = image;
 	}
 
@@ -26,7 +26,7 @@ public class ContainerAttributes {
         return this.isPrivileged;
     }
 
-    public void setPrivileged(boolean privileged) {
+    public void setPrivileged(final boolean privileged) {
         isPrivileged = privileged;
     }
 
@@ -37,11 +37,11 @@ public class ContainerAttributes {
 		return Collections.unmodifiableList(new LinkedList<String>(this.volumes));
 	}
 
-	public void setVolumes(List<String> volumes) {
+	public void setVolumes(final List<String> volumes) {
 		this.volumes = volumes;
 	}
 
-    public void setVolumes(String... volumes) {
+    public void setVolumes(final String... volumes) {
         this.volumes = Arrays.asList(volumes);
     }
 
@@ -52,11 +52,11 @@ public class ContainerAttributes {
 		return Collections.unmodifiableList(new LinkedList<String>(this.ports));
 	}
 	
-	public void setPorts(List<String> ports) {
+	public void setPorts(final List<String> ports) {
 		this.ports = ports;
 	}
 	
-	public void setPorts(String... ports) {
+	public void setPorts(final String... ports) {
 		this.ports = Arrays.asList(ports);
 	}
 
@@ -67,11 +67,11 @@ public class ContainerAttributes {
 		return Collections.unmodifiableList(new LinkedList<String>(this.envs));
 	}
 
-	public void setEnvs(List<String> envs) {
+	public void setEnvs(final List<String> envs) {
 		this.envs = envs;
 	}
 	
-	public void setEnvs(String... envs) {
+	public void setEnvs(final String... envs) {
 		this.envs = Arrays.asList(envs);
 	}
 
@@ -79,7 +79,7 @@ public class ContainerAttributes {
 		return port;
 	}
 
-	public void setPort(int port) {
+	public void setPort(final int port) {
 		this.port = port;
 	}
 
@@ -87,7 +87,7 @@ public class ContainerAttributes {
 		return shmSize;
 	}
 
-	public void setShmSize(Long shmSize) {
+	public void setShmSize(final Long shmSize) {
 		this.shmSize = shmSize;
 	}
 }

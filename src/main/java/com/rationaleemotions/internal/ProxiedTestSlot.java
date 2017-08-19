@@ -15,7 +15,7 @@ import java.util.Map;
 public class ProxiedTestSlot extends TestSlot {
     private URL remoteURL;
 
-    public ProxiedTestSlot(RemoteProxy proxy, SeleniumProtocol protocol, Map<String, Object> capabilities) {
+    public ProxiedTestSlot(final RemoteProxy proxy, final SeleniumProtocol protocol, final Map<String, Object> capabilities) {
         super(proxy, protocol, capabilities);
     }
 
@@ -33,7 +33,7 @@ public class ProxiedTestSlot extends TestSlot {
         return null;
     }
 
-    public void setRemoteURL(URL remoteURL) {
+    public void setRemoteURL(final URL remoteURL) {
     	this.remoteURL = remoteURL;
     }
 }

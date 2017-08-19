@@ -23,26 +23,48 @@ public class SpawnedServer {
     }
 
     public static SpawnedServer spawnInstance(TestSession session) throws Exception {
-        SpawnedServer server = new SpawnedServer();
-        AtomicInteger attempts = new AtomicInteger(0);
-        String browser = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_NAME);
-        String version = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_VERSION);
-        server.server = newInstance(browser,version);
-        int port = server.server.startServer(session);
+        SpawnedServer server = startServer(session);
+        server.waitSeleniumReady();
+        
+        return server;
+    }
 
+	/**
+	 * @param server
+	 * @throws InterruptedException
+	 * @throws ServerException
+	 */
+	private void waitSeleniumReady() throws InterruptedException, ServerException {
+		AtomicInteger attempts = new AtomicInteger(0);
         boolean isServerRunning=false;
         do {
             TimeUnit.SECONDS.sleep(1);
-            isServerRunning=server.server.isServerRunning();
+            isServerRunning=this.server.isServerRunning();
         } while (!isServerRunning && attempts.incrementAndGet() <= 10);
         
         if(!isServerRunning){
         	 throw new ServerException(String.format("Failed to access Selenium Node"));
         }
+	}
+
+	/**
+	 * @param session
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ServerException
+	 */
+	private static SpawnedServer startServer(TestSession session)
+			throws ClassNotFoundException, IllegalAccessException, InstantiationException, ServerException {
+		SpawnedServer server = new SpawnedServer();
+        String browser = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_NAME);
+        String version = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_VERSION);
+        server.server = newInstance(browser,version);
+        int port = server.server.startServer(session);
         LOG.info("***Server started on [{}]****", port);
-        
-        return server;
-    }
+		return server;
+	}
 
     public String getHost() {
         return server.getHost();

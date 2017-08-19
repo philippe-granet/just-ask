@@ -116,14 +116,13 @@ class DockerHelper {
             portBinding.add(binding);
             portBindings.put(port, portBinding);
         }
-        HostConfig.Builder hostConfigBuilder = HostConfig.builder()
+        final HostConfig hostConfig = HostConfig.builder()
         		.portBindings(portBindings)
         		.privileged(containerAttributes.isPrivileged())
         		.binds(containerAttributes.getVolumes())
         		.autoRemove(true)
-        		.shmSize(containerAttributes.getShmSize());
-        
-        final HostConfig hostConfig = hostConfigBuilder.build();
+        		.shmSize(containerAttributes.getShmSize())
+        		.build();
 
         final ContainerConfig containerConfig = ContainerConfig.builder()
             .hostConfig(hostConfig)
@@ -143,7 +142,24 @@ class DockerHelper {
         	LOG.debug("{} was already running.", containerInfo.name());
         }
         
-        AtomicInteger attempts = new AtomicInteger(0);
+        waitContainerAvailable(id);
+
+        ContainerInfo info = new ContainerInfo(id, containerPort);
+        LOG.debug("******{}******", info);
+
+        return info;
+    }
+
+	/**
+	 * @param id
+	 * @throws InterruptedException
+	 * @throws DockerException
+	 * @throws ServerException
+	 */
+	private static void waitContainerAvailable(final String id)
+			throws InterruptedException, DockerException, ServerException {
+		com.spotify.docker.client.messages.ContainerInfo containerInfo;
+		AtomicInteger attempts = new AtomicInteger(0);
         Integer exitCode=0;
         do{
             // Inspect container
@@ -178,12 +194,7 @@ class DockerHelper {
         	
             throw new ServerException(String.format("Failed to start Container %s with id %s", containerInfo.name(), id));
         }
-
-        ContainerInfo info = new ContainerInfo(id, containerPort);
-        LOG.debug("******{}******", info);
-
-        return info;
-    }
+	}
 
     private static void predownloadImagesIfRequired() throws DockerException, InterruptedException {
 

@@ -116,7 +116,7 @@ public class ConfigReader {
     }
     
     private static class ReaderInstance {
-        static final ConfigReader instance = new ConfigReader();
+        private static final ConfigReader instance = new ConfigReader();
 
         static {
             init();

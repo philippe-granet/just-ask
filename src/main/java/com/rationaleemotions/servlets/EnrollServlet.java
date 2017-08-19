@@ -58,7 +58,7 @@ public class EnrollServlet extends RegistryBasedServlet {
 		new EnrollServletPoller().start();
 	}
 
-	public EnrollServlet(Registry registry) {
+	public EnrollServlet(final Registry registry) {
 		super(registry);
 	}
 
@@ -89,7 +89,7 @@ public class EnrollServlet extends RegistryBasedServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
 		addProxy();
 	}
 
@@ -118,7 +118,7 @@ public class EnrollServlet extends RegistryBasedServlet {
 		Preconditions.checkState(status == HttpStatus.SC_OK, "There was a problem in hooking in the ghost node.");
 	}
 
-	private StringEntity getJsonAsEntity(String host, int port) throws UnsupportedEncodingException {
+	private StringEntity getJsonAsEntity(final String host, final int port) throws UnsupportedEncodingException {
 		try {
 			InputStream isr = Thread.currentThread().getContextClassLoader().getResourceAsStream("ondemand.json");
 			String string = IOUtils.toString(new InputStreamReader(isr));

@@ -184,7 +184,7 @@ public class Hub {
 		}
 	}
 
-	private void addJavaMelodyMonitoringFilter(ServletContextHandler root) {
+	private void addJavaMelodyMonitoringFilter(final ServletContextHandler root) {
 		// Add JavaMelody monitoring filter
 		final net.bull.javamelody.MonitoringFilter monitoringFilter = new net.bull.javamelody.MonitoringFilter();
 		monitoringFilter.setApplicationType("Standalone");

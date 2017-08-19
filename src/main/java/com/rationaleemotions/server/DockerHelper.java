@@ -56,7 +56,7 @@ class DockerHelper {
      * @throws DockerException      - In case of any issues.
      * @throws InterruptedException - In case of any issues.
      */
-    static void killAndRemoveContainer(final String id) throws DockerException, InterruptedException {
+    public static void killAndRemoveContainer(final String id) throws DockerException, InterruptedException {
         LOG.debug("Killing and removing the container : [{}].", id);
         
         try {
@@ -73,7 +73,7 @@ class DockerHelper {
      * @throws DockerException      - In case of any issues.
      * @throws InterruptedException - In case of any issues.
      */
-    static void removeContainer(final String id) throws DockerException, InterruptedException {
+    public static void removeContainer(final String id) throws DockerException, InterruptedException {
     	LOG.debug("Removing the container : [{}].", id);
         getClient().removeContainer(id);
     }
@@ -89,7 +89,7 @@ class DockerHelper {
      * @throws InterruptedException - In case of any issues.
      * @throws ServerException 
      */
-    static ContainerInfo startContainerFor(final ContainerAttributes containerAttributes) throws DockerException, InterruptedException, ServerException {
+    public static ContainerInfo startContainerFor(final ContainerAttributes containerAttributes) throws DockerException, InterruptedException, ServerException {
     	LOG.debug("Starting of container for the image [{}].", containerAttributes.getImage());
 
         Preconditions.checkState("ok".equalsIgnoreCase(getClient().ping()),
@@ -254,7 +254,6 @@ class DockerHelper {
         }
     }
 
-
     private static class DockerCleanup implements Runnable {
         private DockerClient client;
 
@@ -269,5 +268,4 @@ class DockerHelper {
             }
         }
     }
-
 }

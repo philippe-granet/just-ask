@@ -22,7 +22,7 @@ public class SpawnedServer {
         //We have a factory method. Hiding the constructor.
     }
 
-    public static SpawnedServer spawnInstance(TestSession session) throws Exception {
+    public static SpawnedServer spawnInstance(final TestSession session) throws Exception {
         SpawnedServer server = startServer(session);
         server.waitSeleniumReady();
         
@@ -55,7 +55,7 @@ public class SpawnedServer {
 	 * @throws InstantiationException
 	 * @throws ServerException
 	 */
-	private static SpawnedServer startServer(TestSession session)
+	private static SpawnedServer startServer(final TestSession session)
 			throws ClassNotFoundException, IllegalAccessException, InstantiationException, ServerException {
 		SpawnedServer server = new SpawnedServer();
         String browser = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_NAME);

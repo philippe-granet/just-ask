@@ -104,7 +104,7 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
 		return envs;
 	}
 
-    private Long getShmSize(Object shmSize) {
+    private Long getShmSize(final Object shmSize) {
     	if(shmSize==null){
     		return null;
     	}

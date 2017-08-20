@@ -115,7 +115,7 @@ public class ConfigReader {
         return null;
     }
     
-    private static class ReaderInstance {
+    private final static class ReaderInstance {
         private static final ConfigReader instance = new ConfigReader();
 
         static {

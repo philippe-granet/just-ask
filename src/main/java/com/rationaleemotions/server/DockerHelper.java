@@ -41,7 +41,7 @@ import com.spotify.docker.client.messages.PortBinding;
 /**
  * A Helper class that facilitates interaction with a Docker Daemon.
  */
-class DockerHelper {
+public final class DockerHelper {
     private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     
     public static final String UNIX_SCHEME = "unix";

@@ -13,7 +13,7 @@ import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
 
-public class SpawnedServer {
+public final class SpawnedServer {
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private ISeleniumServer server;
@@ -57,12 +57,20 @@ public class SpawnedServer {
 	 */
 	private static SpawnedServer startServer(final TestSession session)
 			throws ClassNotFoundException, IllegalAccessException, InstantiationException, ServerException {
+		
 		SpawnedServer server = new SpawnedServer();
+		
         String browser = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_NAME);
-        String version = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_VERSION);
+        String capabilityBrowserVersion = (String) session.getRequestedCapabilities().get(CapabilityType.BROWSER_VERSION);
+        String capabilityVersion = (String) session.getRequestedCapabilities().get(CapabilityType.VERSION);
+        
+        String version=capabilityBrowserVersion!=null?capabilityBrowserVersion:capabilityVersion;
+        
         server.server = newInstance(browser,version);
+        
         int port = server.server.startServer(session);
         LOG.info("***Server started on [{}]****", port);
+        
 		return server;
 	}
 

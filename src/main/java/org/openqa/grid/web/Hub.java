@@ -195,7 +195,7 @@ public class Hub {
 		parameters.put(Parameter.NO_DATABASE, "true");
 		
 		// set the path of the reports:
-		parameters.put(Parameter.MONITORING_PATH, "/grid/monitoring/");
+		parameters.put(Parameter.MONITORING_PATH, "/grid/monitoring");
 		if (parameters != null) {
 			for (final Map.Entry<Parameter, String> entry : parameters.entrySet()) {
 				final Parameter parameter = entry.getKey();

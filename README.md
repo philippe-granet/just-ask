@@ -38,41 +38,102 @@ cleaned up. The on-demand node can be a docker container that hosts a selenium n
 
 In order to consume **just-ask** for your straight forward on-demand grid needs, following instructions need to be 
 followed:
-* First download the uber jar from [here](http://repo1.maven.org/maven2/com/rationaleemotions/just-ask/1.0.2/). Make sure 
-you download the uber jar i.e., the jar name that ends with `jar-with-dependencies`. The latest released v
+* Build the project
 * Download the latest Selenium standalone jar from [here](http://www.seleniumhq.org/download/).
 * Now create a configuration JSON file as shown below :
-
 ```json
 {
-  "dockerRestApiUri": "http://192.168.43.130:2375",
-  "localhost": "0.0.0.0",
-  "dockerImagePort": "4444",
-  "maxSession": 5,
-  "mapping": [
-    {
-      "browser": "chrome",
-      "target": "selenium/standalone-chrome:3.0.1",
-      "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer"
-    },
-    {
-      "browser": "firefox",
-      "target": "selenium/standalone-firefox:3.0.1",
-      "implementation": "com.rationaleemotions.server.JvmBasedSeleniumServer"
-    }
-  ]
+	"port": 4444,
+	"newSessionWaitTimeout": -1,
+	"servlets": [
+		"com.rationaleemotions.servlets.JustAskServlet"
+	],
+	"withoutServlets": [
+	],
+	"capabilityMatcher": "org.openqa.grid.internal.utils.DefaultCapabilityMatcher",
+	"throwOnCapabilityNotPresent": true,
+	"cleanUpCycle": 5000,
+	"role": "hub",
+	"debug": false,
+	"browserTimeout": 0,
+	"timeout": 1800,
+	"justAsk": {
+		"dockerRestApiUri": "unix:///var/run/docker.sock",
+		"localhost": "0.0.0.0",
+		"maxSession": 5,
+		"browsers": [
+			{
+				"browser": "chrome",
+				"defaultVersion": "59.0.3071.115",
+				"versions": [
+					{
+						"version": "58.0.3029.81",
+						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+						"target": {
+							"image": "selenium/standalone-chrome:3.4.0-chromium",
+							"port": "4444",
+							"volumes": [
+								"/dev/shm:/dev/shm"
+							]
+						}
+					},
+					{
+						"version": "59.0.3071.115",
+						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+						"target": {
+							"image": "selenium/standalone-chrome:3.4.0-einsteinium",
+							"port": "4444",
+							"volumes": [
+								"/dev/shm:/dev/shm"
+							]
+						}
+					}
+				]
+			},
+			{
+				"browser": "firefox",
+				"defaultVersion": "54.0",
+				"versions": [
+					{
+						"version": "52.0.2",
+						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+						"target": {
+							"image": "selenium/standalone-firefox:3.4.0-actinium",
+							"port": "4444",
+							"shmSize": "2g"
+						}
+					},
+					{
+						"version": "53.0",
+						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+						"target": {
+							"image": "selenium/standalone-firefox:3.4.0-dysprosium",
+							"port": "4444",
+							"shmSize": "2g"
+						}
+					},
+					{
+						"version": "54.0",
+						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+						"target": {
+							"image": "selenium/standalone-firefox:3.4.0-einsteinium",
+							"port": "4444",
+							"shmSize": "2g"
+						}
+					}
+				]
+			}
+		]
+	}
 }
-```
-* Start the On-demand Grid using the below command (Here the JVM argument `-Dconfig.file` is used to specify the 
-location of the JSON configuration file that we created above.)
 
 ```
-java -Dconfig.file=config.json -cp selenium-server-standalone-3.0.1.jar:just-ask-<VERSION>-jar-with-dependencies.jar \
-org.openqa.grid.selenium.GridLauncherV3 -role hub -servlets com.rationaleemotions.servlets.EnrollServlet
-```
+* Start the On-demand Grid using the below command:
 
-* Now wire in the Ghost Proxy into this on-demand hub by loading the URL : 
-**http://localhost:4444/grid/admin/EnrollServlet**
+```
+java -cp selenium-server-standalone-3.5.1.jar:just-ask-<VERSION>-jar-with-dependencies.jar \
+org.openqa.grid.selenium.GridLauncherV3 -role hub -hubConfig config.json
+```
 
 * That's about it. The On-demand Grid is now ready for use.
 
@@ -82,7 +143,6 @@ The meaning of each of the attributes of the JSON file is as below :
 * `dockerRestApiUri` - Represents the Docker Rest API URI (could be `unix:///var/run/docker.sock` or `http://192.168.43.130:2375`).
 * `localhost` - Represents the hostname of the machine on which the Docker Daemon is running on (Its safe to leave 
 its value as `0.0.0.0` )
-* `dockerImagePort` - Represents the port number that is exposed inside the docker container.
 * `maxSession` - Represents the maximum number of concurrent sessions that can be supported by the On-demand Hub 
 after which new test session requests will be queued.
 * `mapping` - Represents a set of key-value pairs wherein `browser` represents the `browser flavor` and `target` 
@@ -116,8 +176,7 @@ consume it, you merely need to add the following as a dependency in your pom fil
 Now that you have added the above as a maven dependency, you build your own implementation of the Server, by 
 implementing the interface `com.rationaleemotions.server.ISeleniumServer`.
 
-After that, you can wire in your implementation via the `implementation` attribute in the JSON configuration file 
-using the JVM argument `-Dconfig.file`.
+After that, you can wire in your implementation via the `implementation` attribute in the JSON configuration file
 
 ## Building the code on your own
 
@@ -127,7 +186,6 @@ In order to get started with using this library here are the set of instructions
  * Drop the built jar (you will find two jars, so please make sure you pick up the uber jar which would have its name
   around something like this `just-ask-<VERSION>-jar-with-dependencies.jar` ) in the directory that contains the 
   selenium server standalone.
- * Start the selenium hub using the command `java -cp selenium-server-standalone-3.2.0.jar:just-ask-<VERSION>-jar-with-dependencies.jar org.openqa.grid.selenium.GridLauncherV3 -role hub -servlets com.rationaleemotions.servlets.EnrollServlet`
- * Explicitly register the *ghost node* by loading the URL `http://localhost:4444/grid/admin/EnrollServlet` in a browser.
- 
+ * Start the selenium hub using the command `java -cp selenium-server-standalone-3.5.1.jar:just-ask-<VERSION>-jar-with-dependencies.jar org.openqa.grid.selenium.GridLauncherV3 -role hub -hubConfig config.json`
+
  Now the **On-demand Grid** is ready for use.

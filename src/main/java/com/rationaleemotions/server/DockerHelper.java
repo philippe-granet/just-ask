@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,8 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.rationaleemotions.config.BrowserInfo;
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
@@ -35,7 +32,6 @@ import com.spotify.docker.client.LogStream;
 import com.spotify.docker.client.LoggingBuildHandler;
 import com.spotify.docker.client.ProgressHandler;
 import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
@@ -119,21 +115,7 @@ public final class DockerHelper {
             portBinding.add(binding);
             portBindings.put(port, portBinding);
         }
-        final HostConfig hostConfig = HostConfig.builder()
-        		.portBindings(portBindings)
-        		.privileged(containerAttributes.isPrivileged())
-        		.binds(containerAttributes.getVolumes())
-        		.autoRemove(true)
-        		.shmSize(containerAttributes.getShmSize())
-        		.build();
-
-        final ContainerConfig containerConfig = ContainerConfig.builder()
-            .hostConfig(hostConfig)
-            .image(containerAttributes.getImage())
-            .exposedPorts(new HashSet<String>(exposedPorts))
-            .env(containerAttributes.getEnvs())
-            .build();
-        final ContainerCreation creation = getClient().createContainer(containerConfig);
+        final ContainerCreation creation = createContainer(containerAttributes, portBindings, exposedPorts);
         final String id = creation.id();
 
         com.spotify.docker.client.messages.ContainerInfo containerInfo = getClient().inspectContainer(id);
@@ -156,6 +138,35 @@ public final class DockerHelper {
 
         return info;
     }
+
+	/**
+	 * @param containerAttributes
+	 * @param portBindings
+	 * @param exposedPorts
+	 * @return
+	 * @throws DockerException
+	 * @throws InterruptedException
+	 */
+	private static ContainerCreation createContainer(final ContainerAttributes containerAttributes,
+			final Map<String, List<PortBinding>> portBindings, List<String> exposedPorts)
+			throws DockerException, InterruptedException {
+		final HostConfig hostConfig = HostConfig.builder()
+        		.portBindings(portBindings)
+        		.privileged(containerAttributes.isPrivileged())
+        		.binds(containerAttributes.getVolumes())
+        		.autoRemove(true)
+        		.shmSize(containerAttributes.getShmSize())
+        		.build();
+
+        final ContainerConfig containerConfig = ContainerConfig.builder()
+            .hostConfig(hostConfig)
+            .image(containerAttributes.getImage())
+            .exposedPorts(new HashSet<String>(exposedPorts))
+            .env(containerAttributes.getEnvs())
+            .build();
+        final ContainerCreation creation = getClient().createContainer(containerConfig);
+		return creation;
+	}
 
 	/**
 	 * @param id

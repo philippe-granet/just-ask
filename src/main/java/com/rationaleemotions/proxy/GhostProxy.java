@@ -128,7 +128,7 @@ public class GhostProxy extends DefaultRemoteProxy {
             throw new GridException(e.getMessage(), e);
         }
     }
-
+    
     private void stopServerForTestSession(final TestSession session) {
         URL url = session.getSlot().getRemoteURL();
         String key = String.format("%s://%s:%d", url.getProtocol(), url.getHost(), url.getPort());

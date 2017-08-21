@@ -18,7 +18,6 @@ public class ProxiedTestSlot extends TestSlot {
     public ProxiedTestSlot(final RemoteProxy proxy, final SeleniumProtocol protocol, final Map<String, Object> capabilities) {
         super(proxy, protocol, capabilities);
     }
-
     @Override
     public URL getRemoteURL() {
         boolean isRemoteURLSet = remoteURL != null;
@@ -32,7 +31,6 @@ public class ProxiedTestSlot extends TestSlot {
         }
         return null;
     }
-
     public void setRemoteURL(final URL remoteURL) {
     	this.remoteURL = remoteURL;
     }

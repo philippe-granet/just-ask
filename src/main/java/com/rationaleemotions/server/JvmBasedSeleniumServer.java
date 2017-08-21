@@ -1,6 +1,6 @@
 package com.rationaleemotions.server;
 
-import com.rationaleemotions.servlets.EnrollServlet;
+import com.rationaleemotions.servlets.JustAskServlet;
 import org.openqa.grid.internal.TestSession;
 import org.openqa.grid.selenium.GridLauncherV3;
 import org.openqa.selenium.net.PortProber;
@@ -68,6 +68,6 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
 
     @Override
     public String getHost() {
-        return EnrollServlet.getHubHost();
+        return JustAskServlet.getHubHost();
     }
 }

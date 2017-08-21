@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.rationaleemotions.config.BrowserInfo;
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
@@ -32,6 +35,7 @@ import com.spotify.docker.client.LogStream;
 import com.spotify.docker.client.LoggingBuildHandler;
 import com.spotify.docker.client.ProgressHandler;
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
@@ -67,7 +71,7 @@ public final class DockerHelper {
 		}
         getClient().removeContainer(id);
     }
-
+    
     /**
      * @param id - The ID of the container that is to be removed.
      * @throws DockerException      - In case of any issues.
@@ -133,6 +137,7 @@ public final class DockerHelper {
         final String id = creation.id();
 
         com.spotify.docker.client.messages.ContainerInfo containerInfo = getClient().inspectContainer(id);
+        
         if (! containerInfo.state().running()) {
             // Start container
             getClient().startContainer(id);
@@ -142,8 +147,11 @@ public final class DockerHelper {
         }
         
         waitContainerAvailable(id);
-
-        ContainerInfo info = new ContainerInfo(id, containerPort);
+        
+        containerInfo = getClient().inspectContainer(id);
+        String gatewayIP = containerInfo.networkSettings().gateway();
+        
+        ContainerInfo info = new ContainerInfo(id, gatewayIP, containerPort);
         LOG.debug("******{}******", info);
 
         return info;
@@ -234,10 +242,12 @@ public final class DockerHelper {
     public static class ContainerInfo {
         private int port;
         private String containerId;
+        private String gatewayIP;
 
-        ContainerInfo(final String containerId, final int port) {
+        ContainerInfo(final String containerId, String gatewayIP, final int port) {
             this.port = port;
             this.containerId = containerId;
+            this.gatewayIP = gatewayIP;
         }
 
         public int getPort() {
@@ -247,10 +257,14 @@ public final class DockerHelper {
         public String getContainerId() {
             return containerId;
         }
+        
+        public String getGatewayIP() {
+            return gatewayIP;
+        }
 
         @Override
         public String toString() {
-            return String.format("%s running on %d", containerId, port);
+            return String.format("%s running on %s:%d", containerId, gatewayIP, port);
         }
     }
 

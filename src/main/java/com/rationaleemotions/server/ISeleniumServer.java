@@ -7,13 +7,18 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.openqa.grid.common.exception.GridConfigurationException;
 import org.openqa.grid.internal.TestSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 
 /**
  * Represents the capabilities that a typical selenium server should possess.
  */
 public interface ISeleniumServer {
+    final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    
     /**
      * @return - <code>true</code> if the server is running.
      */
@@ -24,7 +29,7 @@ public interface ISeleniumServer {
             HttpResponse response = client.execute(host);
             return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
         } catch (IOException | GridConfigurationException e) {
-            //Gobble Exception
+        	LOG.info("isServerRunning : {}",e.getMessage());
         }
         return false;
     }

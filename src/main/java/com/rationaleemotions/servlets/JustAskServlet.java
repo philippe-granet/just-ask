@@ -1,12 +1,13 @@
 package com.rationaleemotions.servlets;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -24,21 +25,27 @@ import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.openqa.grid.common.RegistrationRequest;
 import org.openqa.grid.common.exception.GridConfigurationException;
 import org.openqa.grid.common.exception.GridException;
+import org.openqa.grid.internal.ExternalSessionKey;
 import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.RemoteProxy;
+import org.openqa.grid.internal.TestSession;
+import org.openqa.grid.internal.TestSlot;
 import org.openqa.grid.internal.utils.configuration.GridHubConfiguration;
 import org.openqa.grid.web.servlet.RegistryBasedServlet;
 import org.openqa.selenium.Platform;
-import org.openqa.selenium.net.NetworkUtils;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.internal.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.beust.jcommander.JCommander;
 import com.google.common.base.Preconditions;
+import com.google.common.io.CharStreams;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.rationaleemotions.config.BrowserInfo;
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.config.ConfigReader;
@@ -48,7 +55,7 @@ import com.rationaleemotions.server.DockerBasedSeleniumServer;
  * Represents a simple servlet that needs to be invoked in order to wire in our
  * ghost node which will act as a proxy for all proxies.
  */
-public class EnrollServlet extends RegistryBasedServlet {
+public class JustAskServlet extends RegistryBasedServlet {
 
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -58,39 +65,36 @@ public class EnrollServlet extends RegistryBasedServlet {
 		new EnrollServletPoller().start();
 	}
 
-	public EnrollServlet(final Registry registry) {
+	public JustAskServlet(final Registry registry) {
 		super(registry);
 	}
 
-	private static GridHubConfiguration getGridHubConfiguration() {
-		String[] mainCommand = System.getProperty("sun.java.command").split(" ");
-		String[] args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
-
-		GridHubConfiguration pending = new GridHubConfiguration();
-		new JCommander(pending, args);
-		GridHubConfiguration config = pending;
-		// re-parse the args using any -hubConfig specified to init
-		if (pending.hubConfig != null) {
-			config = GridHubConfiguration.loadFromJSON(pending.hubConfig);
-			new JCommander(config, args); // args take precedence
-		}
-		if (config.host == null) {
-			NetworkUtils utils = new NetworkUtils();
-			config.host = utils.getIp4NonLoopbackAddressOfThisMachine().getHostAddress();
-		}
-		if (config.port == null) {
-			config.port = 4444;
-		}
-		return config;
-	}
-
-	public EnrollServlet() {
+	public JustAskServlet() {
 		this(null);
 	}
 
 	@Override
-	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-		addProxy();
+	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
+			throws ServletException, IOException {
+		if (req.getParameterMap().containsKey("session")) {
+			retrieveSessionInformations(req, resp);
+		} else {
+			addProxy();
+		}
+	}
+
+	protected void retrieveSessionInformations(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		response.setStatus(200);
+		JsonObject res;
+		try {
+			res = getResponse(request);
+			response.getWriter().print(res);
+			response.getWriter().close();
+		} catch (JsonSyntaxException e) {
+			throw new GridException(e.getMessage());
+		}
 	}
 
 	private void addProxy() {
@@ -164,7 +168,7 @@ public class EnrollServlet extends RegistryBasedServlet {
 	private static class EnrollServletPoller extends Thread {
 
 		private static long sleepTimeBetweenChecks = 500;
-		private static GridHubConfiguration gridHubConfiguration = getGridHubConfiguration();
+		private static GridHubConfiguration gridHubConfiguration = ConfigReader.getGridHubConfiguration();
 
 		protected long getSleepTimeBetweenChecks() {
 			return sleepTimeBetweenChecks;
@@ -180,8 +184,9 @@ public class EnrollServlet extends RegistryBasedServlet {
 				}
 				HttpClientFactory httpClientFactory = new HttpClientFactory();
 				try {
-					final URL enrollServletEndpoint = new URL(String.format("http://%s:%d/grid/admin/%s",
-							gridHubConfiguration.host, gridHubConfiguration.port, EnrollServlet.class.getSimpleName()));
+					final URL enrollServletEndpoint = new URL(
+							String.format("http://%s:%d/grid/admin/%s", gridHubConfiguration.host,
+									gridHubConfiguration.port, JustAskServlet.class.getSimpleName()));
 
 					BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("GET",
 							enrollServletEndpoint.toExternalForm());
@@ -200,5 +205,56 @@ public class EnrollServlet extends RegistryBasedServlet {
 				}
 			}
 		}
+	}
+
+	private JsonObject getResponse(HttpServletRequest request) throws IOException {
+		JsonObject requestJSON = null;
+		if (request.getInputStream() != null) {
+			String json;
+			try (Reader rd = new BufferedReader(new InputStreamReader(request.getInputStream()))) {
+				json = CharStreams.toString(rd);
+			}
+			if (!"".equals(json)) {
+				requestJSON = new JsonParser().parse(json).getAsJsonObject();
+			}
+		}
+
+		JsonObject res = new JsonObject();
+		res.addProperty("success", false);
+
+		// the id can be specified via a param, or in the json request.
+		String session;
+		if (requestJSON == null) {
+			session = request.getParameter("session");
+		} else {
+			if (!requestJSON.has("session")) {
+				res.addProperty("msg",
+						"you need to specify at least a session or internalKey when call the test slot status service.");
+				return res;
+			}
+			session = requestJSON.get("session").getAsString();
+		}
+
+		TestSession testSession = getRegistry().getSession(ExternalSessionKey.fromString(session));
+
+		if (testSession == null) {
+			res.addProperty("msg", "Cannot find test slot running session " + session + " in the registry.");
+			return res;
+		}
+		res.addProperty("msg", "slot found !");
+		res.remove("success");
+		res.addProperty("success", true);
+		res.addProperty("session", testSession.getExternalKey().getKey());
+		res.addProperty("internalKey", testSession.getInternalKey());
+		res.addProperty("inactivityTime", testSession.getInactivityTime());
+		TestSlot testSlot = testSession.getSlot();
+		res.addProperty("remoteUrl", testSlot.getRemoteURL().toExternalForm());
+		res.addProperty("lastSessionStart", testSlot.getLastSessionStart());
+		Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
+		        .setPrettyPrinting().create();
+		res.add("capabilities", gson.toJsonTree(testSlot.getCapabilities()));
+		RemoteProxy p = testSlot.getProxy();
+		res.addProperty("proxyId", p.getId());
+		return res;
 	}
 }

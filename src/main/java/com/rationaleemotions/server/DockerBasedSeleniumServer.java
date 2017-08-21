@@ -12,7 +12,6 @@ import org.openqa.selenium.remote.CapabilityType;
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.server.docker.ContainerAttributes;
-import com.spotify.docker.client.UnixConnectionSocketFactory;
 import com.spotify.docker.client.exceptions.DockerException;
 
 /**
@@ -41,12 +40,7 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
 
     @Override
 	public String getHost() {
-    	URI uri=ConfigReader.getInstance().getDockerRestApiUri();
-		if (uri.getScheme().equals(DockerHelper.UNIX_SCHEME)) {
-			return UnixConnectionSocketFactory.sanitizeUri(uri).getHost();
-		} else {
-			return uri.getHost();
-		}
+    	return containerInfo.getGatewayIP();
 	}
 
     @Override

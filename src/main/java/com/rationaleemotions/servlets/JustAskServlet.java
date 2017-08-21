@@ -182,28 +182,35 @@ public class JustAskServlet extends RegistryBasedServlet {
 				} catch (InterruptedException e) {
 					return;
 				}
-				HttpClientFactory httpClientFactory = new HttpClientFactory();
-				try {
-					final URL enrollServletEndpoint = new URL(
-							String.format("http://%s:%d/grid/admin/%s", gridHubConfiguration.host,
-									gridHubConfiguration.port, JustAskServlet.class.getSimpleName()));
-
-					BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("GET",
-							enrollServletEndpoint.toExternalForm());
-					HttpHost host = new HttpHost(enrollServletEndpoint.getHost(), enrollServletEndpoint.getPort());
-					HttpClient client = httpClientFactory.getHttpClient();
-					HttpResponse response = client.execute(host, request);
-
-					if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-						return;
-					}
-
-				} catch (IOException e) {
-					LOG.error(e.getMessage(), e);
-				} finally {
-					httpClientFactory.close();
+				if(callServletToRegister()){
+					return;
 				}
 			}
+		}
+
+		private boolean callServletToRegister() {
+			HttpClientFactory httpClientFactory = new HttpClientFactory();
+			try {
+				final URL enrollServletEndpoint = new URL(
+						String.format("http://%s:%d/grid/admin/%s", gridHubConfiguration.host,
+								gridHubConfiguration.port, JustAskServlet.class.getSimpleName()));
+
+				BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("GET",
+						enrollServletEndpoint.toExternalForm());
+				HttpHost host = new HttpHost(enrollServletEndpoint.getHost(), enrollServletEndpoint.getPort());
+				HttpClient client = httpClientFactory.getHttpClient();
+				HttpResponse response = client.execute(host, request);
+
+				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+					return true;
+				}
+
+			} catch (IOException e) {
+				LOG.error(e.getMessage(), e);
+			} finally {
+				httpClientFactory.close();
+			}
+			return false;
 		}
 	}
 

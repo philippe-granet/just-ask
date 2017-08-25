@@ -19,13 +19,15 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.JCommander;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 
 /**
  * A singleton instance that works as a configuration data source.
  */
 public class ConfigReader {
 	public static final String DEFAULT_CONFIG_FILE = "defaults/just-ask.json";
+
+	private static String[] args;
 
 	private Configuration configuration;
 
@@ -35,6 +37,14 @@ public class ConfigReader {
 	 * @return - A {@link ConfigReader} that represents the configuration.
 	 */
 	public static ConfigReader getInstance() {
+		return getInstance(null);
+	}
+	
+	/**
+	 * @return - A {@link ConfigReader} that represents the configuration.
+	 */
+	public static ConfigReader getInstance(String[] args) {
+		ConfigReader.args = args;
 		return ReaderInstance.instance;
 	}
 
@@ -105,9 +115,12 @@ public class ConfigReader {
 		return configuration.getMaxSession();
 	}
 	
-	public static GridHubConfiguration getGridHubConfiguration() {
-		String[] mainCommand = System.getProperty("sun.java.command").split(" ");
-		String[] args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
+	public GridHubConfiguration getGridHubConfiguration() {
+		String[] args = ConfigReader.args;
+		if(args == null){
+			String[] mainCommand = System.getProperty("sun.java.command").split(" ");
+			args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
+		}
 
 		GridHubConfiguration pending = new GridHubConfiguration();
 		new JCommander(pending, args);
@@ -126,9 +139,12 @@ public class ConfigReader {
 		}
 		return config;
 	}
-	public static JsonObject getJsonGridHubConfiguration() {
-		String[] mainCommand = System.getProperty("sun.java.command").split(" ");
-		String[] args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
+	private static JsonElement getJustAskConfiguration() {
+		String[] args = ConfigReader.args;
+		if(args == null){
+			String[] mainCommand = System.getProperty("sun.java.command").split(" ");
+			args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
+		}
 
 		GridHubConfiguration pending = new GridHubConfiguration();
 		new JCommander(pending, args);
@@ -137,7 +153,7 @@ public class ConfigReader {
 			confFile=pending.hubConfig;
 		}
 		LOG.info("Load configuration file {}", confFile);
-		return JSONConfigurationUtils.loadJSON(confFile);
+		return JSONConfigurationUtils.loadJSON(confFile).get("justAsk");
 	}
 	private final static class ReaderInstance {
 		private static final ConfigReader instance = new ConfigReader();
@@ -151,12 +167,12 @@ public class ConfigReader {
 		}
 
 		private static void init() {
-			JsonObject jsonConf = getJsonGridHubConfiguration();
-			instance.configuration = new Gson().fromJson(jsonConf.get("justAsk"), Configuration.class);
+			JsonElement jsonConf = getJustAskConfiguration();
+			instance.configuration = new Gson().fromJson(jsonConf, Configuration.class);
 			LOG.info("Working with the Configuration : {}", instance.configuration);
 		}
 	}
-
+	
 	private static class Configuration {
 		private String dockerRestApiUri;
 		private String localhost;

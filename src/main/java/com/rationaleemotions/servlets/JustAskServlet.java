@@ -89,7 +89,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		response.setStatus(200);
 		JsonObject res;
 		try {
-			res = getResponse(request);
+			res = getJsonSessionInformations(request);
 			response.getWriter().print(res);
 			response.getWriter().close();
 		} catch (JsonSyntaxException e) {
@@ -101,7 +101,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		// After the construction is finished, lets wrap up.
 		int status;
 
-		HttpClientFactory httpClientFactory = new HttpClientFactory();
+		HttpClientFactory httpClientFactory = new HttpClientFactory(1000, 1000);
 		try {
 			final int port = getRegistry().getHub().getConfiguration().port;
 			hubHost = getRegistry().getHub().getConfiguration().host;
@@ -128,8 +128,6 @@ public class JustAskServlet extends RegistryBasedServlet {
 			String string = IOUtils.toString(new InputStreamReader(isr));
 			JsonObject ondemand = new JsonParser().parse(string).getAsJsonObject();
 			int maxSession = ConfigReader.getInstance().getMaxSession();
-			// JsonArray capsArray =
-			// ondemand.get("capabilities").getAsJsonArray();
 			JsonArray capsArray = new JsonArray();
 			ondemand.add("capabilities", capsArray);
 
@@ -168,7 +166,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 	private static class EnrollServletPoller extends Thread {
 
 		private static long sleepTimeBetweenChecks = 500;
-		private static GridHubConfiguration gridHubConfiguration = ConfigReader.getGridHubConfiguration();
+		private static GridHubConfiguration gridHubConfiguration = ConfigReader.getInstance().getGridHubConfiguration();
 
 		protected long getSleepTimeBetweenChecks() {
 			return sleepTimeBetweenChecks;
@@ -214,7 +212,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		}
 	}
 
-	private JsonObject getResponse(HttpServletRequest request) throws IOException {
+	private JsonObject getJsonSessionInformations(HttpServletRequest request) throws IOException {
 		JsonObject requestJSON = null;
 		if (request.getInputStream() != null) {
 			String json;

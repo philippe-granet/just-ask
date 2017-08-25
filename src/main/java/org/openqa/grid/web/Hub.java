@@ -51,6 +51,7 @@ import org.seleniumhq.jetty9.util.thread.QueuedThreadPool;
 
 import com.google.common.collect.Maps;
 
+import net.bull.javamelody.MonitoringFilter;
 import net.bull.javamelody.Parameter;
 
 /**
@@ -186,9 +187,19 @@ public class Hub {
 
 	private void addJavaMelodyMonitoringFilter(final ServletContextHandler root) {
 		// Add JavaMelody monitoring filter
-		final net.bull.javamelody.MonitoringFilter monitoringFilter = new net.bull.javamelody.MonitoringFilter();
+		final MonitoringFilter monitoringFilter = new MonitoringFilter();
 		monitoringFilter.setApplicationType("Standalone");
 		final FilterHolder filterHolder = new FilterHolder(monitoringFilter);
+		final Map<Parameter, String> parameters = initJavaMelodyParameters();
+		for (final Map.Entry<Parameter, String> entry : parameters.entrySet()) {
+			final Parameter parameter = entry.getKey();
+			final String value = entry.getValue();
+			filterHolder.setInitParameter(parameter.getCode(), value);
+		}
+		root.addFilter(filterHolder, "/*", EnumSet.of(DispatcherType.INCLUDE, DispatcherType.REQUEST));
+	}
+
+	private Map<Parameter, String> initJavaMelodyParameters() {
 		final Map<Parameter, String> parameters = new HashMap<>();
 		parameters.put(Parameter.SAMPLING_SECONDS, "10");
 		parameters.put(Parameter.UPDATE_CHECK_DISABLED, "true");
@@ -196,15 +207,7 @@ public class Hub {
 		
 		// set the path of the reports:
 		parameters.put(Parameter.MONITORING_PATH, "/grid/monitoring");
-		if (parameters != null) {
-			for (final Map.Entry<Parameter, String> entry : parameters.entrySet()) {
-				final Parameter parameter = entry.getKey();
-				final String value = entry.getValue();
-				filterHolder.setInitParameter(parameter.getCode(), value);
-			}
-		}
-
-		root.addFilter(filterHolder, "/*", EnumSet.of(DispatcherType.INCLUDE, DispatcherType.REQUEST));
+		return parameters;
 	}
 
 	public GridHubConfiguration getConfiguration() {

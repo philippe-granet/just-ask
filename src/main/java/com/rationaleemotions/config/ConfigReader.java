@@ -37,11 +37,12 @@ public class ConfigReader {
 	 * @return - A {@link ConfigReader} that represents the configuration.
 	 */
 	public static ConfigReader getInstance() {
-		return getInstance(null);
+		return ReaderInstance.instance;
 	}
-	
+
 	/**
-	 * @return - A {@link ConfigReader} that represents the configuration.
+	 * @param args
+	 * @return A {@link ConfigReader} that represents the configuration.
 	 */
 	public static ConfigReader getInstance(String[] args) {
 		ConfigReader.args = args;
@@ -82,7 +83,8 @@ public class ConfigReader {
 	}
 
 	/**
-	 * @return - The browser to target (target could for e.g., be docker image)
+	 * @param browser name
+	 * @return The browser to target (target could for e.g., be docker image)
 	 *         mapping.
 	 */
 	public Map<String, BrowserVersionInfo> getBrowserVersions(final String browser) {
@@ -139,22 +141,6 @@ public class ConfigReader {
 		}
 		return config;
 	}
-	private static JsonElement getJustAskConfiguration() {
-		String[] args = ConfigReader.args;
-		if(args == null){
-			String[] mainCommand = System.getProperty("sun.java.command").split(" ");
-			args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
-		}
-
-		GridHubConfiguration pending = new GridHubConfiguration();
-		new JCommander(pending, args);
-		String confFile=DEFAULT_CONFIG_FILE;
-		if (pending.hubConfig != null) {
-			confFile=pending.hubConfig;
-		}
-		LOG.info("Load configuration file {}", confFile);
-		return JSONConfigurationUtils.loadJSON(confFile).get("justAsk");
-	}
 	private final static class ReaderInstance {
 		private static final ConfigReader instance = new ConfigReader();
 
@@ -170,6 +156,23 @@ public class ConfigReader {
 			JsonElement jsonConf = getJustAskConfiguration();
 			instance.configuration = new Gson().fromJson(jsonConf, Configuration.class);
 			LOG.info("Working with the Configuration : {}", instance.configuration);
+		}
+
+		private static JsonElement getJustAskConfiguration() {
+			String[] args = ConfigReader.args;
+			if(args == null){
+				String[] mainCommand = System.getProperty("sun.java.command").split(" ");
+				args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
+			}
+
+			GridHubConfiguration pending = new GridHubConfiguration();
+			new JCommander(pending, args);
+			String confFile=DEFAULT_CONFIG_FILE;
+			if (pending.hubConfig != null) {
+				confFile=pending.hubConfig;
+			}
+			LOG.info("Load configuration file {}", confFile);
+			return JSONConfigurationUtils.loadJSON(confFile).get("justAsk");
 		}
 	}
 	

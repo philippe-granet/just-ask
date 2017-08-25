@@ -204,7 +204,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 				}
 
 			} catch (IOException e) {
-				LOG.error(e.getMessage(), e);
+				LOG.error("Error calling enroll servlet : " + e.getMessage());
 			} finally {
 				httpClientFactory.close();
 			}

@@ -79,11 +79,7 @@ public final class DockerHelper {
     }
 
     /**
-     * @param image - The name of the image for which a docker container is to be spun off. For e.g., you could
-     *              specify the image name as <code>selenium/standalone-chrome:3.0.1</code> to download the
-     *              <code>standalone-chrome</code> image with its tag as <code>3.0.1</code>
-     * @param isPrivileged - <code>true</code> if the container is to be run in privileged mode.
-     * @param devices - A List of {@link DeviceInfo} objects
+     * @param A {@link ContainerAttributes} object
      * @return - A {@link ContainerInfo} object that represents the newly spun off container.
      * @throws DockerException      - In case of any issues.
      * @throws InterruptedException - In case of any issues.

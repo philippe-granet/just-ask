@@ -1,5 +1,6 @@
 package com.rationaleemotions.server;
 
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,8 @@ import java.util.Map.Entry;
 
 import org.openqa.grid.internal.TestSession;
 import org.openqa.selenium.remote.CapabilityType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.config.ConfigReader;
@@ -20,6 +23,9 @@ import com.spotify.docker.client.exceptions.DockerException;
  *
  */
 public class DockerBasedSeleniumServer implements ISeleniumServer {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	
 	private DockerHelper.ContainerInfo containerInfo;
 	
 	public DockerBasedSeleniumServer() {
@@ -73,11 +79,13 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
         List<String> volumes = browserVersion.getTargetAttributeAsList("volumes");
         
         List<String> envs=new ArrayList<>();
+        
         List<String> configEnv = browserVersion.getTargetAttributeAsList("env");
-        List<String> capabilitiesEnv = getConfiguredDockerEnvsFromCapabilities(requestedCapabilities);
         if(configEnv!=null && !configEnv.isEmpty()){
         	envs.addAll(configEnv);
         }
+        // Capabilities envs overrides configured envs
+        List<String> capabilitiesEnv = getConfiguredDockerEnvsFromCapabilities(requestedCapabilities);
         if(capabilitiesEnv!=null && !capabilitiesEnv.isEmpty()){
         	envs.addAll(capabilitiesEnv);
         }
@@ -107,28 +115,28 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
 		return envs;
 	}
 
-    private Long getShmSize(final Object shmSize) {
+    protected Long getShmSize(final String shmSize) {
     	if(shmSize==null){
     		return null;
     	}
     	try{
     		if(shmSize.toString().endsWith("b")){
-	    		return Long.parseLong(shmSize.toString().replace("b", ""));
+	    		return Long.parseLong(shmSize.replace("b", ""));
 	    		
 	    	} else if(shmSize.toString().endsWith("k")){
-	    		return Long.parseLong(shmSize.toString().replace("k", ""))*1024L;
+	    		return Long.parseLong(shmSize.replace("k", ""))*1024L;
 	    		
 	    	} else if(shmSize.toString().endsWith("m")){
-	    		return Long.parseLong(shmSize.toString().replace("m", ""))*1024L*1024L*1024L;
+	    		return Long.parseLong(shmSize.replace("m", ""))*1024L*1024L;
 	    		
 	    	} else if(shmSize.toString().endsWith("g")){
-	    		return Long.parseLong(shmSize.toString().replace("g", ""))*1024L*1024L*1024L*1024L;
+	    		return Long.parseLong(shmSize.replace("g", ""))*1024L*1024L*1024L;
 	    		
 	    	} else {
-	    		return Long.parseLong(shmSize.toString())*1024L*1024L*1024L*1024L;
+	    		return Long.parseLong(shmSize)*1024L*1024L*1024L;
 	    	}
     	}catch (NumberFormatException e) {
-			e.printStackTrace();
+    		LOG.error("invalid shmSize "+shmSize, e);
 		}
     	return null;
     }

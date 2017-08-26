@@ -19,7 +19,11 @@
 								"/dev/shm:/dev/shm"
 							],
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					},
@@ -33,7 +37,11 @@
 								"/dev/shm:/dev/shm"
 							],
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					}
@@ -51,7 +59,11 @@
 							"port": "4444",
 							"shmSize": "2g",
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					},
@@ -63,7 +75,11 @@
 							"port": "4444",
 							"shmSize": "2g",
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					},
@@ -75,7 +91,11 @@
 							"port": "4444",
 							"shmSize": "2g",
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					}

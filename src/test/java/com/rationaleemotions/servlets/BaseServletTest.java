@@ -21,7 +21,7 @@ public class BaseServletTest {
 	private static final String BASE_URL = "http://localhost:4444";
 	private static final String CONTEXT_PATH = "/";
 
-	protected HttpServlet servlet;
+	protected static HttpServlet servlet;
 
 	protected static UrlInfo createUrl(String path) {
 		return new UrlInfo(BASE_URL, CONTEXT_PATH, path);

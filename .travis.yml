@@ -11,11 +11,16 @@ only:
 cache:
   directories:
   - "$HOME/.m2"
-  
+
+before_install:
+  - sudo apt-get install jq
+  - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
+
 script: "mvn cobertura:cobertura -B"
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
+- mvn com.gavinmogan:codacy-maven-plugin:coverage -DcoverageReportFile=target/site/jacoco/jacoco.xml -DprojectToken=cb25b5d870a945e99051786720973fdc -DapiToken=FJw5K9Ebl34rMVXiPOKL
 - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in $GPG_DIR/pubring.gpg.enc
   -out $GPG_DIR/pubring.gpg -d
 - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in $GPG_DIR/secring.gpg.enc

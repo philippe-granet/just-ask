@@ -31,6 +31,7 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.LogStream;
 import com.spotify.docker.client.LoggingBuildHandler;
 import com.spotify.docker.client.ProgressHandler;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -58,14 +59,13 @@ public final class DockerHelper {
      */
     public static void killAndRemoveContainer(final String id) throws DockerException, InterruptedException {
         LOG.debug("Killing and removing the container : [{}].", id);
-        
         try {
 			getClient().killContainer(id);
 		} catch (DockerException | InterruptedException e) {
 			// Fail if containers already stopped
 			LOG.error("Fail to kill container {}", id, e);
 		}
-        getClient().removeContainer(id);
+        removeContainer(id);
     }
     
     /**
@@ -75,7 +75,11 @@ public final class DockerHelper {
      */
     public static void removeContainer(final String id) throws DockerException, InterruptedException {
     	LOG.debug("Removing the container : [{}].", id);
-        getClient().removeContainer(id);
+    	try {
+			getClient().removeContainer(id);
+		} catch (ContainerNotFoundException e) {
+			LOG.info("Fail to remove container {}, already removed!", id);
+		}
     }
 
     /**
@@ -183,7 +187,7 @@ public final class DockerHelper {
             if(exitCode==null){
             	exitCode=0;
             }
-            LOG.debug("Container {} with id {} - Information {}", containerInfo.name(), id, containerInfo);
+            LOG.info("Container {} with id {} - Information {}", containerInfo.name(), id, containerInfo);
 
         }while(!containerInfo.state().running() && exitCode==0 && attempts.incrementAndGet()<=10);
         
@@ -208,6 +212,7 @@ public final class DockerHelper {
         	
             throw new ServerException(String.format("Failed to start Container %s with id %s", containerInfo.name(), id));
         }
+        LOG.debug("Cantainer available : {}", containerInfo);
 	}
 
     private static void predownloadImagesIfRequired() throws DockerException, InterruptedException {

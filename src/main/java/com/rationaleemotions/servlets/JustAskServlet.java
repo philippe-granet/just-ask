@@ -83,10 +83,10 @@ public class JustAskServlet extends RegistryBasedServlet {
 		}
 	}
 
-	protected void retrieveSessionInformations(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	protected void retrieveSessionInformations(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		response.setContentType("application/json");
 		response.setCharacterEncoding("UTF-8");
-		response.setStatus(200);
+		response.setStatus(HttpServletResponse.SC_OK);
 		JsonObject res;
 		try {
 			res = getJsonSessionInformations(request);
@@ -212,7 +212,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		}
 	}
 
-	private JsonObject getJsonSessionInformations(HttpServletRequest request) throws IOException {
+	private JsonObject getJsonSessionInformations(final HttpServletRequest request) throws IOException {
 		JsonObject requestJSON = null;
 		if (request.getInputStream() != null) {
 			String json;

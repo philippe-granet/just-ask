@@ -1,5 +1,6 @@
 package com.rationaleemotions.server;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +20,12 @@ import com.spotify.docker.client.exceptions.DockerException;
  *
  */
 public class DockerBasedSeleniumServer implements ISeleniumServer {
-	protected DockerHelper.ContainerInfo containerInfo;
-
+	private DockerHelper.ContainerInfo containerInfo;
+	
+	public DockerBasedSeleniumServer() {
+		// Nothing to do
+	}
+	
     @Override
     public int startServer(final TestSession session) throws ServerException {
         try {
@@ -39,7 +44,12 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
 
     @Override
 	public String getHost() {
-    	return containerInfo.getGatewayIP();
+    	URI uri=ConfigReader.getInstance().getDockerRestApiUri();
+		if (uri.getScheme().equals(DockerHelper.UNIX_SCHEME)) {
+			return containerInfo.getGatewayIP();
+		} else {
+			return uri.getHost();
+		}
 	}
 
     @Override

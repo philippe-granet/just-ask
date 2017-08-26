@@ -43,88 +43,88 @@ followed:
 * Now create a configuration JSON file as shown below :
 ```json
 {
-	"port": 4444,
-	"newSessionWaitTimeout": -1,
-	"servlets": [
-		"com.rationaleemotions.servlets.JustAskServlet"
-	],
-	"withoutServlets": [
-	],
-	"capabilityMatcher": "org.openqa.grid.internal.utils.DefaultCapabilityMatcher",
-	"throwOnCapabilityNotPresent": true,
-	"cleanUpCycle": 5000,
-	"role": "hub",
-	"debug": false,
-	"browserTimeout": 0,
-	"timeout": 1800,
-	"justAsk": {
-		"dockerRestApiUri": "unix:///var/run/docker.sock",
-		"localhost": "0.0.0.0",
-		"maxSession": 5,
-		"browsers": [
-			{
-				"browser": "chrome",
-				"defaultVersion": "59.0.3071.115",
-				"versions": [
-					{
-						"version": "58.0.3029.81",
-						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-						"target": {
-							"image": "selenium/standalone-chrome:3.4.0-chromium",
-							"port": "4444",
-							"volumes": [
-								"/dev/shm:/dev/shm"
-							]
-						}
-					},
-					{
-						"version": "59.0.3071.115",
-						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-						"target": {
-							"image": "selenium/standalone-chrome:3.4.0-einsteinium",
-							"port": "4444",
-							"volumes": [
-								"/dev/shm:/dev/shm"
-							]
-						}
-					}
-				]
-			},
-			{
-				"browser": "firefox",
-				"defaultVersion": "54.0",
-				"versions": [
-					{
-						"version": "52.0.2",
-						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-						"target": {
-							"image": "selenium/standalone-firefox:3.4.0-actinium",
-							"port": "4444",
-							"shmSize": "2g"
-						}
-					},
-					{
-						"version": "53.0",
-						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-						"target": {
-							"image": "selenium/standalone-firefox:3.4.0-dysprosium",
-							"port": "4444",
-							"shmSize": "2g"
-						}
-					},
-					{
-						"version": "54.0",
-						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-						"target": {
-							"image": "selenium/standalone-firefox:3.4.0-einsteinium",
-							"port": "4444",
-							"shmSize": "2g"
-						}
-					}
-				]
-			}
-		]
-	}
+  "port": 4444,
+  "newSessionWaitTimeout": -1,
+  "servlets": [
+    "com.rationaleemotions.servlets.JustAskServlet"
+  ],
+  "withoutServlets": [
+  ],
+  "capabilityMatcher": "org.openqa.grid.internal.utils.DefaultCapabilityMatcher",
+  "throwOnCapabilityNotPresent": true,
+  "cleanUpCycle": 5000,
+  "role": "hub",
+  "debug": false,
+  "browserTimeout": 0,
+  "timeout": 1800,
+  "justAsk": {
+    "dockerRestApiUri": "unix:///var/run/docker.sock",
+    "localhost": "0.0.0.0",
+    "maxSession": 5,
+    "browsers": [
+      {
+        "browser": "chrome",
+        "defaultVersion": "59.0.3071.115",
+        "versions": [
+          {
+            "version": "58.0.3029.81",
+            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+            "target": {
+              "image": "selenium/standalone-chrome:3.4.0-chromium",
+              "port": "4444",
+              "volumes": [
+                "/dev/shm:/dev/shm"
+              ]
+            }
+          },
+          {
+            "version": "59.0.3071.115",
+            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+            "target": {
+              "image": "selenium/standalone-chrome:3.4.0-einsteinium",
+              "port": "4444",
+              "volumes": [
+                "/dev/shm:/dev/shm"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "browser": "firefox",
+        "defaultVersion": "54.0",
+        "versions": [
+          {
+            "version": "52.0.2",
+            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+            "target": {
+              "image": "selenium/standalone-firefox:3.4.0-actinium",
+              "port": "4444",
+              "shmSize": "2g"
+            }
+          },
+          {
+            "version": "53.0",
+            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+            "target": {
+              "image": "selenium/standalone-firefox:3.4.0-dysprosium",
+              "port": "4444",
+              "shmSize": "2g"
+            }
+          },
+          {
+            "version": "54.0",
+            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+            "target": {
+              "image": "selenium/standalone-firefox:3.4.0-einsteinium",
+              "port": "4444",
+              "shmSize": "2g"
+            }
+          }
+        ]
+      }
+    ]
+  }
 }
 
 ```

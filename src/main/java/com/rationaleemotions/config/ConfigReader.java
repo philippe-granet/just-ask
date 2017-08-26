@@ -1,7 +1,9 @@
 package com.rationaleemotions.config;
 
 import java.lang.invoke.MethodHandles;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,10 +11,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.openqa.grid.common.JSONConfigurationUtils;
 import org.openqa.grid.internal.utils.configuration.GridHubConfiguration;
 import org.openqa.selenium.net.NetworkUtils;
+import org.openqa.selenium.net.UrlChecker;
+import org.openqa.selenium.net.UrlChecker.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +26,7 @@ import com.beust.jcommander.JCommander;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.rationaleemotions.server.DockerHelper;
 
 /**
  * A singleton instance that works as a configuration data source.
@@ -31,6 +38,8 @@ public class ConfigReader {
 
 	private Configuration configuration;
 
+	private URI dockerRestApiUri;
+	
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
@@ -56,7 +65,28 @@ public class ConfigReader {
 		if (configuration == null) {
 			return null;
 		}
-		return URI.create(configuration.getDockerRestApiUri().replaceAll("^unix:///", "unix://localhost/"));
+		if(dockerRestApiUri!=null){
+			return dockerRestApiUri;
+		}
+		
+		String uri = configuration.getDockerRestApiUri().replaceAll("^unix:///", "unix://localhost/");
+		if (uri.startsWith(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
+			// Spotify client doesn't yet support npipe windows socket
+			// https://github.com/spotify/docker-client/issues/875
+			LOG.warn("We are on Windows, try to use TCP daemon instead of unix pipe");
+			
+			uri = "http://127.0.0.1:2375";
+			
+			UrlChecker urlChecker = new UrlChecker();
+			try {
+				urlChecker.waitUntilAvailable(1, TimeUnit.SECONDS, new URL(uri+"/_ping"));
+			
+			} catch (TimeoutException | MalformedURLException e) {
+				throw new RuntimeException("You are on Windows, you should expose daemon on tcp://localhost:2375 without TLS");
+			}
+		}
+		dockerRestApiUri = URI.create(uri);
+		return dockerRestApiUri;
 	}
 
 	/**
@@ -83,7 +113,8 @@ public class ConfigReader {
 	}
 
 	/**
-	 * @param browser name
+	 * @param browser
+	 *            name
 	 * @return The browser to target (target could for e.g., be docker image)
 	 *         mapping.
 	 */
@@ -116,15 +147,16 @@ public class ConfigReader {
 		}
 		return configuration.getMaxSession();
 	}
-	
+
 	public GridHubConfiguration getGridHubConfiguration() {
 		String[] args = ConfigReader.args;
-		if(args == null){
+		if (args == null) {
 			String[] mainCommand = System.getProperty("sun.java.command").split(" ");
 			args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
 		}
 
 		GridHubConfiguration pending = new GridHubConfiguration();
+		Integer defaultPort = pending.port;
 		new JCommander(pending, args);
 		GridHubConfiguration config = pending;
 		// re-parse the args using any -hubConfig specified to init
@@ -137,10 +169,11 @@ public class ConfigReader {
 			config.host = utils.getIp4NonLoopbackAddressOfThisMachine().getHostAddress();
 		}
 		if (config.port == null) {
-			config.port = 4444;
+			config.port = defaultPort;
 		}
 		return config;
 	}
+
 	private final static class ReaderInstance {
 		private static final ConfigReader instance = new ConfigReader();
 
@@ -160,22 +193,22 @@ public class ConfigReader {
 
 		private static JsonElement getJustAskConfiguration() {
 			String[] args = ConfigReader.args;
-			if(args == null){
+			if (args == null) {
 				String[] mainCommand = System.getProperty("sun.java.command").split(" ");
 				args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
 			}
 
 			GridHubConfiguration pending = new GridHubConfiguration();
 			new JCommander(pending, args);
-			String confFile=DEFAULT_CONFIG_FILE;
+			String confFile = DEFAULT_CONFIG_FILE;
 			if (pending.hubConfig != null) {
-				confFile=pending.hubConfig;
+				confFile = pending.hubConfig;
 			}
 			LOG.info("Load configuration file {}", confFile);
 			return JSONConfigurationUtils.loadJSON(confFile).get("justAsk");
 		}
 	}
-	
+
 	private static class Configuration {
 		private String dockerRestApiUri;
 		private String localhost;

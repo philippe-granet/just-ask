@@ -21,18 +21,18 @@ public class BaseServletTest {
 	private static final String BASE_URL = "http://localhost:4444";
 	private static final String CONTEXT_PATH = "/";
 
-	protected HttpServlet servlet;
+	protected static HttpServlet servlet;
 
 	protected static UrlInfo createUrl(String path) {
 		return new UrlInfo(BASE_URL, CONTEXT_PATH, path);
 	}
 
-	protected FakeHttpServletResponse sendCommand(String method, String commandPath)
+	protected static FakeHttpServletResponse sendCommand(String method, String commandPath)
 			throws IOException, ServletException, URISyntaxException {
 		return sendCommand(method, commandPath, null);
 	}
 
-	protected FakeHttpServletResponse sendCommand(String method, String commandPath, JsonObject parameters)
+	protected static FakeHttpServletResponse sendCommand(String method, String commandPath, JsonObject parameters)
 			throws IOException, ServletException, URISyntaxException {
 		UrlInfo urlInfo = createUrl(commandPath);
 		FakeHttpServletRequest request = new FakeHttpServletRequest(method, urlInfo);

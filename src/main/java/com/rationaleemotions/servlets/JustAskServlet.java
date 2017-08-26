@@ -240,7 +240,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 			session = requestJSON.get("session").getAsString();
 		}
 
-		TestSession testSession = getRegistry().getSession(ExternalSessionKey.fromString(session));
+		TestSession testSession = getRegistry().getHub().getRegistry().getSession(ExternalSessionKey.fromString(session));
 
 		if (testSession == null) {
 			res.addProperty("msg", "Cannot find test slot running session " + session + " in the registry.");

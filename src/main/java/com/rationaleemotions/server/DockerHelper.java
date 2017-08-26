@@ -46,11 +46,6 @@ public final class DockerHelper {
     private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     
     public static final String UNIX_SCHEME = "unix";
-    
-    private DockerHelper() {
-        DockerClient client = getClient();
-        Runtime.getRuntime().addShutdownHook(new Thread(new DockerCleanup(client)));
-    }
 
     /**
      * @param id - The ID of the container that is to be cleaned up.
@@ -277,21 +272,6 @@ public final class DockerHelper {
         @Override
         public String toString() {
             return String.format("%s running on %s:%d", containerId, gatewayIP, port);
-        }
-    }
-
-    private static class DockerCleanup implements Runnable {
-        private DockerClient client;
-
-        DockerCleanup(final DockerClient client) {
-            this.client = client;
-        }
-
-        @Override
-        public void run() {
-            if (client != null) {
-                client.close();
-            }
         }
     }
 }

@@ -1,9 +1,7 @@
 package com.rationaleemotions.config;
 
 import java.lang.invoke.MethodHandles;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,14 +9,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.openqa.grid.common.JSONConfigurationUtils;
 import org.openqa.grid.internal.utils.configuration.GridHubConfiguration;
 import org.openqa.selenium.net.NetworkUtils;
-import org.openqa.selenium.net.UrlChecker;
-import org.openqa.selenium.net.UrlChecker.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +34,7 @@ public class ConfigReader {
 	private Configuration configuration;
 
 	private URI dockerRestApiUri;
-	
+
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
@@ -65,27 +60,22 @@ public class ConfigReader {
 		if (configuration == null) {
 			return null;
 		}
-		if(dockerRestApiUri!=null){
+		if (dockerRestApiUri != null) {
 			return dockerRestApiUri;
 		}
-		
-		String uri = configuration.getDockerRestApiUri().replaceAll("^unix:///", "unix://localhost/");
-		if (uri.startsWith(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
-			// Spotify client doesn't yet support npipe windows socket
-			// https://github.com/spotify/docker-client/issues/875
-			LOG.warn("We are on Windows, try to use TCP daemon instead of unix pipe");
-			
-			uri = "http://127.0.0.1:2375";
-			
-			UrlChecker urlChecker = new UrlChecker();
-			try {
-				urlChecker.waitUntilAvailable(1, TimeUnit.SECONDS, new URL(uri+"/_ping"));
-			
-			} catch (TimeoutException | MalformedURLException e) {
-				throw new RuntimeException("You are on Windows, you should expose daemon on tcp://localhost:2375 without TLS");
-			}
+		URI socketUri = URI.create(configuration.getDockerRestApiUri().replaceAll("^unix:///", "unix://localhost/"));
+		if (socketUri.getScheme().equalsIgnoreCase(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
+			LOG.warn("\n\n*************************************************************\n"
+					+ "*************************************************************\n"
+					+ "Spotify client doesn't yet support npipe windows socket\n"
+					+ "https://github.com/spotify/docker-client/issues/875\n"
+					+ "Try to use TCP daemon http://127.0.0.1:2375\n"
+					+ "*************************************************************\n"
+					+ "*************************************************************\n\n");
+
+			socketUri = URI.create("http://127.0.0.1:2375");
 		}
-		dockerRestApiUri = URI.create(uri);
+		dockerRestApiUri = socketUri;
 		return dockerRestApiUri;
 	}
 

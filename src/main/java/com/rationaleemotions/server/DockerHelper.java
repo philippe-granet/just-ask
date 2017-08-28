@@ -4,7 +4,11 @@ import static com.rationaleemotions.config.ConfigReader.getInstance;
 import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.net.PortProber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,96 +48,107 @@ import com.spotify.docker.client.messages.PortBinding;
  * A Helper class that facilitates interaction with a Docker Daemon.
  */
 public final class DockerHelper {
-    private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    
-    public static final String UNIX_SCHEME = "unix";
+	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    /**
-     * @param id - The ID of the container that is to be cleaned up.
-     * @throws DockerException      - In case of any issues.
-     * @throws InterruptedException - In case of any issues.
-     */
-    public static void killAndRemoveContainer(final String id) throws DockerException, InterruptedException {
-        LOG.debug("Killing and removing the container : [{}].", id);
-        try {
+	public static final String UNIX_SCHEME = "unix";
+
+	/**
+	 * @param id
+	 *            - The ID of the container that is to be cleaned up.
+	 * @throws DockerException
+	 *             - In case of any issues.
+	 * @throws InterruptedException
+	 *             - In case of any issues.
+	 */
+	public static void killAndRemoveContainer(final String id) throws DockerException, InterruptedException {
+		LOG.debug("Killing and removing the container : [{}].", id);
+		try {
 			getClient().killContainer(id);
 		} catch (DockerException | InterruptedException e) {
 			// Fail if containers already stopped
 			LOG.error("Fail to kill container {}", id, e);
 		}
-        removeContainer(id);
-    }
-    
-    /**
-     * @param id - The ID of the container that is to be removed.
-     * @throws DockerException      - In case of any issues.
-     * @throws InterruptedException - In case of any issues.
-     */
-    public static void removeContainer(final String id) throws DockerException, InterruptedException {
-    	LOG.debug("Removing the container : [{}].", id);
-    	try {
+		removeContainer(id);
+	}
+
+	/**
+	 * @param id
+	 *            - The ID of the container that is to be removed.
+	 * @throws DockerException
+	 *             - In case of any issues.
+	 * @throws InterruptedException
+	 *             - In case of any issues.
+	 */
+	public static void removeContainer(final String id) throws DockerException, InterruptedException {
+		LOG.debug("Removing the container : [{}].", id);
+		try {
 			getClient().removeContainer(id);
 		} catch (ContainerNotFoundException e) {
 			LOG.info("Fail to remove container {}, already removed!", id);
 		}
-    }
+	}
 
-    /**
-     * @param A {@link ContainerAttributes} object
-     * @return - A {@link ContainerInfo} object that represents the newly spun off container.
-     * @throws DockerException      - In case of any issues.
-     * @throws InterruptedException - In case of any issues.
-     * @throws ServerException 
-     */
-    public static ContainerInfo startContainerFor(final ContainerAttributes containerAttributes) throws DockerException, InterruptedException, ServerException {
-    	LOG.debug("Starting of container for the image [{}].", containerAttributes.getImage());
+	/**
+	 * @param A
+	 *            {@link ContainerAttributes} object
+	 * @return - A {@link ContainerInfo} object that represents the newly spun
+	 *         off container.
+	 * @throws DockerException
+	 *             - In case of any issues.
+	 * @throws InterruptedException
+	 *             - In case of any issues.
+	 * @throws ServerException
+	 */
+	public static ContainerInfo startContainerFor(final ContainerAttributes containerAttributes)
+			throws DockerException, InterruptedException, ServerException {
+		LOG.debug("Starting of container for the image [{}].", containerAttributes.getImage());
 
-        Preconditions.checkState("ok".equalsIgnoreCase(getClient().ping()),
-            "Ensuring that the Docker Daemon is up and running.");
-        DockerHelper.predownloadImagesIfRequired();
+		Preconditions.checkState("ok".equalsIgnoreCase(getClient().ping()),
+				"Ensuring that the Docker Daemon is up and running.");
+		DockerHelper.predownloadImagesIfRequired();
 
-        final Map<String, List<PortBinding>> portBindings = new HashMap<>();
+		final Map<String, List<PortBinding>> portBindings = new HashMap<>();
 
-        String localHost = getInstance().getLocalhost();
-        List<String> exposedPorts=new LinkedList<>();
-        if(containerAttributes.getPorts()!=null){
-        	exposedPorts=new LinkedList<>(containerAttributes.getPorts());
-        }
-        exposedPorts.add(Integer.toString(containerAttributes.getPort()));
-        int containerPort = 0;
-        for (String port : exposedPorts) {
-            int randomPort = PortProber.findFreePort();
-            if(Integer.parseInt(port)==containerAttributes.getPort()){
-            	containerPort=randomPort;
-            }
-            PortBinding binding = PortBinding.create(localHost, Integer.toString(randomPort));
-            List<PortBinding> portBinding = new ArrayList<>();
-            portBinding.add(binding);
-            portBindings.put(port, portBinding);
-        }
-        final ContainerCreation creation = createContainer(containerAttributes, portBindings, exposedPorts);
-        final String id = creation.id();
+		String localHost = getInstance().getLocalhost();
+		List<String> exposedPorts = new LinkedList<>();
+		if (containerAttributes.getPorts() != null) {
+			exposedPorts = new LinkedList<>(containerAttributes.getPorts());
+		}
+		exposedPorts.add(Integer.toString(containerAttributes.getPort()));
+		int containerPort = 0;
+		for (String port : exposedPorts) {
+			int randomPort = PortProber.findFreePort();
+			if (Integer.parseInt(port) == containerAttributes.getPort()) {
+				containerPort = randomPort;
+			}
+			PortBinding binding = PortBinding.create(localHost, Integer.toString(randomPort));
+			List<PortBinding> portBinding = new ArrayList<>();
+			portBinding.add(binding);
+			portBindings.put(port, portBinding);
+		}
+		final ContainerCreation creation = createContainer(containerAttributes, portBindings, exposedPorts);
+		final String id = creation.id();
 
-        com.spotify.docker.client.messages.ContainerInfo containerInfo = getClient().inspectContainer(id);
-        
-        if (! containerInfo.state().running()) {
-            // Start container
-            getClient().startContainer(id);
-            LOG.debug("Starting {}", containerInfo.name());
-        } else {
-        	LOG.debug("{} was already running.", containerInfo.name());
-        }
-        
-        waitContainerAvailable(id);
-        
-        containerInfo = getClient().inspectContainer(id);
-        String gatewayIP = containerInfo.networkSettings().gateway();
-        
-        ContainerInfo info = new ContainerInfo(id, gatewayIP, containerPort);
-        LOG.debug("******{}******", info);
+		com.spotify.docker.client.messages.ContainerInfo containerInfo = getClient().inspectContainer(id);
 
-        return info;
-    }
+		if (!containerInfo.state().running()) {
+			// Start container
+			getClient().startContainer(id);
+			LOG.debug("Starting {}", containerInfo.name());
+		} else {
+			LOG.debug("{} was already running.", containerInfo.name());
+		}
+
+		waitContainerAvailable(id);
+
+		containerInfo = getClient().inspectContainer(id);
+		String gatewayIP = containerInfo.networkSettings().gateway();
+
+		ContainerInfo info = new ContainerInfo(id, gatewayIP, containerPort);
+		LOG.debug("******{}******", info);
+
+		return info;
+	}
 
 	/**
 	 * @param containerAttributes
@@ -145,21 +161,14 @@ public final class DockerHelper {
 	private static ContainerCreation createContainer(final ContainerAttributes containerAttributes,
 			final Map<String, List<PortBinding>> portBindings, List<String> exposedPorts)
 			throws DockerException, InterruptedException {
-		final HostConfig hostConfig = HostConfig.builder()
-        		.portBindings(portBindings)
-        		.privileged(containerAttributes.isPrivileged())
-        		.binds(containerAttributes.getVolumes())
-        		.autoRemove(true)
-        		.shmSize(containerAttributes.getShmSize())
-        		.build();
+		final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings)
+				.privileged(containerAttributes.isPrivileged()).binds(containerAttributes.getVolumes()).autoRemove(true)
+				.shmSize(containerAttributes.getShmSize()).build();
 
-        final ContainerConfig containerConfig = ContainerConfig.builder()
-            .hostConfig(hostConfig)
-            .image(containerAttributes.getImage())
-            .exposedPorts(new HashSet<String>(exposedPorts))
-            .env(containerAttributes.getEnvs())
-            .build();
-        final ContainerCreation creation = getClient().createContainer(containerConfig);
+		final ContainerConfig containerConfig = ContainerConfig.builder().hostConfig(hostConfig)
+				.image(containerAttributes.getImage()).exposedPorts(new HashSet<String>(exposedPorts))
+				.env(containerAttributes.getEnvs()).build();
+		final ContainerCreation creation = getClient().createContainer(containerConfig);
 		return creation;
 	}
 
@@ -173,105 +182,125 @@ public final class DockerHelper {
 			throws InterruptedException, DockerException, ServerException {
 		com.spotify.docker.client.messages.ContainerInfo containerInfo;
 		AtomicInteger attempts = new AtomicInteger(0);
-        Integer exitCode=0;
-        do{
-            // Inspect container
-        	TimeUnit.SECONDS.sleep(1);
-            containerInfo = getClient().inspectContainer(id);
-            exitCode=containerInfo.state().exitCode();
-            if(exitCode==null){
-            	exitCode=0;
-            }
-            LOG.info("Container {} with id {} - Information {}", containerInfo.name(), id, containerInfo);
-
-        }while(!containerInfo.state().running() && exitCode==0 && attempts.incrementAndGet()<=10);
-        
-        if(!containerInfo.state().running() || exitCode!=0){
-        	try (LogStream stream = getClient().logs(id, stdout(), stderr())) {
-        		final String logs;
-                logs = stream.readFully();
-                LOG.error("Container logs:\n{}", logs);
-            	
-            } catch (Exception e) {
-            	LOG.error("Fail to retrieve container logs...",e);
+		Integer exitCode = 0;
+		do {
+			// Inspect container
+			TimeUnit.SECONDS.sleep(1);
+			containerInfo = getClient().inspectContainer(id);
+			exitCode = containerInfo.state().exitCode();
+			if (exitCode == null) {
+				exitCode = 0;
 			}
-        	LOG.error("Failed to start Container {} with id {} - Information {}", containerInfo.name(), id, containerInfo);
-        	
-        	if(exitCode!=0){
-        		//Fail to start container, remove it!
-        		removeContainer(id);
-        	}else{
-        		//No exit code? System busy? try to kill it and remove it!
-        		killAndRemoveContainer(id);
-        	}
-        	
-            throw new ServerException(String.format("Failed to start Container %s with id %s", containerInfo.name(), id));
-        }
-        LOG.debug("Cantainer available : {}", containerInfo);
+			LOG.info("Container {} with id {} - Information {}", containerInfo.name(), id, containerInfo);
+
+		} while (!containerInfo.state().running() && exitCode == 0 && attempts.incrementAndGet() <= 10);
+
+		if (!containerInfo.state().running() || exitCode != 0) {
+			try (LogStream stream = getClient().logs(id, stdout(), stderr())) {
+				final String logs;
+				logs = stream.readFully();
+				LOG.error("Container logs:\n{}", logs);
+
+			} catch (Exception e) {
+				LOG.error("Fail to retrieve container logs...", e);
+			}
+			LOG.error("Failed to start Container {} with id {} - Information {}", containerInfo.name(), id,
+					containerInfo);
+
+			if (exitCode != 0) {
+				// Fail to start container, remove it!
+				removeContainer(id);
+			} else {
+				// No exit code? System busy? try to kill it and remove it!
+				killAndRemoveContainer(id);
+			}
+
+			throw new ServerException(
+					String.format("Failed to start Container %s with id %s", containerInfo.name(), id));
+		}
+		LOG.debug("Cantainer available : {}", containerInfo);
 	}
 
-    private static void predownloadImagesIfRequired() throws DockerException, InterruptedException {
+	private static void predownloadImagesIfRequired() throws DockerException, InterruptedException {
 
-        DockerClient client = getClient();
-        LOG.info("Start downloading of images.");
-        Collection<BrowserInfo> browsers = getInstance().getBrowsers().values();
+		DockerClient client = getClient();
+		LOG.info("Start downloading of images.");
+		Collection<BrowserInfo> browsers = getInstance().getBrowsers().values();
 
-        Set<String> dockerImages = new HashSet<>();
-        for (BrowserInfo browser : browsers) {
-        	for (BrowserVersionInfo browserVersion : browser.getVersions()) {
-	        	String dockerImage=browserVersion.getTargetAttribute("image").toString();
-	            
-	        	dockerImages.add(dockerImage);
-	        	
-        	}
-        }
-        ProgressHandler handler = new LoggingBuildHandler();
-        for (Iterator<String> iterator = dockerImages.iterator(); iterator.hasNext();) {
-			String dockerImage = iterator.next();
-        	List<Image> foundImages = client.listImages(DockerClient.ListImagesParam.byName(dockerImage));
-            if (! foundImages.isEmpty()) {
-                LOG.info(String.format("Skipping download for Image [%s] because it's already available.",
-                		dockerImage));
-                continue;
-            }
-            client.pull(dockerImage, handler);
+		Set<String> dockerImages = new HashSet<>();
+		for (BrowserInfo browser : browsers) {
+			for (BrowserVersionInfo browserVersion : browser.getVersions()) {
+				String dockerImage = browserVersion.getTargetAttribute("image").toString();
+
+				dockerImages.add(dockerImage);
+
+			}
 		}
-    }
+		ProgressHandler handler = new LoggingBuildHandler();
+		for (Iterator<String> iterator = dockerImages.iterator(); iterator.hasNext();) {
+			String dockerImage = iterator.next();
+			List<Image> foundImages = client.listImages(DockerClient.ListImagesParam.byName(dockerImage));
+			if (!foundImages.isEmpty()) {
+				LOG.info(
+						String.format("Skipping download for Image [%s] because it's already available.", dockerImage));
+				continue;
+			}
+			client.pull(dockerImage, handler);
+		}
+	}
 
-    private static DockerClient getClient() {
-        return DefaultDockerClient.builder().uri(getInstance().getDockerRestApiUri()).build();
-    }
+	private static DockerClient getClient() {
+		URI socketUri = getInstance().getDockerRestApiUri();
 
-    /**
-     * A Simple POJO that represents the newly spun off container, encapsulating the container Id and the port on which
-     * the container is running.
-     */
-    public static class ContainerInfo {
-        private int port;
-        private String containerId;
-        private String gatewayIP;
+		return DefaultDockerClient.builder().uri(socketUri).build();
+	}
 
-        ContainerInfo(final String containerId, String gatewayIP, final int port) {
-            this.port = port;
-            this.containerId = containerId;
-            this.gatewayIP = gatewayIP;
-        }
+	public static boolean isRunningInsideAContainer() {
+		File cgroup = new File("/proc/1/cgroup");
+		if (!cgroup.exists()) {
+			return false;
+		}
+		try {
+			String cgroupContent = FileUtils.readFileToString(cgroup, Charset.defaultCharset());
+			if (cgroupContent.contains("/docker/")) {
+				return true;
+			}
+		} catch (IOException e) {
+			LOG.error(e.getMessage(), e);
+		}
+		return false;
+	}
 
-        public int getPort() {
-            return port;
-        }
+	/**
+	 * A Simple POJO that represents the newly spun off container, encapsulating
+	 * the container Id and the port on which the container is running.
+	 */
+	public static class ContainerInfo {
+		private int port;
+		private String containerId;
+		private String gatewayIP;
 
-        public String getContainerId() {
-            return containerId;
-        }
-        
-        public String getGatewayIP() {
-            return gatewayIP;
-        }
+		ContainerInfo(final String containerId, String gatewayIP, final int port) {
+			this.port = port;
+			this.containerId = containerId;
+			this.gatewayIP = gatewayIP;
+		}
 
-        @Override
-        public String toString() {
-            return String.format("%s running on %s:%d", containerId, gatewayIP, port);
-        }
-    }
+		public int getPort() {
+			return port;
+		}
+
+		public String getContainerId() {
+			return containerId;
+		}
+
+		public String getGatewayIP() {
+			return gatewayIP;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%s running on %s:%d", containerId, gatewayIP, port);
+		}
+	}
 }

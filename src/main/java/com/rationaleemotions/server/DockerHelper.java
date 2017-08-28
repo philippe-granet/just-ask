@@ -126,7 +126,10 @@ public final class DockerHelper {
 			portBinding.add(binding);
 			portBindings.put(port, portBinding);
 		}
-		final ContainerCreation creation = createContainer(containerAttributes, portBindings, exposedPorts);
+		String containerName = generateContainerName("just-ask", Integer.toString(containerPort));
+
+		final ContainerCreation creation = createContainer(containerName, containerAttributes, portBindings,
+				exposedPorts);
 		final String id = creation.id();
 
 		com.spotify.docker.client.messages.ContainerInfo containerInfo = getClient().inspectContainer(id);
@@ -150,7 +153,12 @@ public final class DockerHelper {
 		return info;
 	}
 
+	private static String generateContainerName(String containerName, String nodePort) {
+		return String.format("%s_%s", containerName, nodePort);
+	}
+
 	/**
+	 * @param containerName
 	 * @param containerAttributes
 	 * @param portBindings
 	 * @param exposedPorts
@@ -158,9 +166,10 @@ public final class DockerHelper {
 	 * @throws DockerException
 	 * @throws InterruptedException
 	 */
-	private static ContainerCreation createContainer(final ContainerAttributes containerAttributes,
-			final Map<String, List<PortBinding>> portBindings, List<String> exposedPorts)
-			throws DockerException, InterruptedException {
+	private static ContainerCreation createContainer(String containerName,
+			final ContainerAttributes containerAttributes, final Map<String, List<PortBinding>> portBindings,
+			List<String> exposedPorts) throws DockerException, InterruptedException {
+
 		final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings)
 				.privileged(containerAttributes.isPrivileged()).binds(containerAttributes.getVolumes()).autoRemove(true)
 				.shmSize(containerAttributes.getShmSize()).build();
@@ -168,7 +177,7 @@ public final class DockerHelper {
 		final ContainerConfig containerConfig = ContainerConfig.builder().hostConfig(hostConfig)
 				.image(containerAttributes.getImage()).exposedPorts(new HashSet<String>(exposedPorts))
 				.env(containerAttributes.getEnvs()).build();
-		final ContainerCreation creation = getClient().createContainer(containerConfig);
+		final ContainerCreation creation = getClient().createContainer(containerConfig, containerName);
 		return creation;
 	}
 

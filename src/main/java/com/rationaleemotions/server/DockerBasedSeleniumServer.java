@@ -136,7 +136,7 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
 	    		return Long.parseLong(shmSize)*1024L*1024L*1024L;
 	    	}
     	}catch (NumberFormatException e) {
-    		LOG.error("invalid shmSize "+shmSize, e);
+    		LOG.error("invalid shmSize - {}", e.getMessage());
 		}
     	return null;
     }

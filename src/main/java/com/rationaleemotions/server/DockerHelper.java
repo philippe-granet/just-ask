@@ -7,7 +7,6 @@ import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +50,8 @@ public final class DockerHelper {
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	public static final String UNIX_SCHEME = "unix";
+
+    private static DockerClient dockerClient = new DefaultDockerClient(getInstance().getDockerRestApiUri());
 
 	/**
 	 * @param id
@@ -259,9 +260,7 @@ public final class DockerHelper {
 	}
 
 	private static DockerClient getClient() {
-		URI socketUri = getInstance().getDockerRestApiUri();
-
-		return DefaultDockerClient.builder().uri(socketUri).build();
+		return dockerClient;
 	}
 
 	public static boolean isRunningInsideAContainer() {

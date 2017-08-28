@@ -1,7 +1,6 @@
 package com.rationaleemotions.config;
 
 import java.lang.invoke.MethodHandles;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,8 +32,6 @@ public class ConfigReader {
 
 	private Configuration configuration;
 
-	private URI dockerRestApiUri;
-
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
@@ -56,15 +53,12 @@ public class ConfigReader {
 	/**
 	 * @return - The docker rest api uri.
 	 */
-	public URI getDockerRestApiUri() {
+	public String getDockerRestApiUri() {
 		if (configuration == null) {
 			return null;
 		}
-		if (dockerRestApiUri != null) {
-			return dockerRestApiUri;
-		}
-		URI socketUri = URI.create(configuration.getDockerRestApiUri().replaceAll("^unix:///", "unix://localhost/"));
-		if (socketUri.getScheme().equalsIgnoreCase(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
+		String dockerRestApiUri=configuration.getDockerRestApiUri();
+		if (dockerRestApiUri.startsWith(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
 			LOG.warn("\n\n*************************************************************\n"
 					+ "*************************************************************\n"
 					+ "Spotify client doesn't yet support npipe windows socket\n"
@@ -73,9 +67,8 @@ public class ConfigReader {
 					+ "*************************************************************\n"
 					+ "*************************************************************\n\n");
 
-			socketUri = URI.create("http://127.0.0.1:2375");
+			dockerRestApiUri = "http://127.0.0.1:2375";
 		}
-		dockerRestApiUri = socketUri;
 		return dockerRestApiUri;
 	}
 

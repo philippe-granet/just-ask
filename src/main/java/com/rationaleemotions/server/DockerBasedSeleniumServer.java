@@ -50,11 +50,11 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
 
     @Override
 	public String getHost() {
-    	URI uri=ConfigReader.getInstance().getDockerRestApiUri();
-		if (uri.getScheme().equals(DockerHelper.UNIX_SCHEME)) {
+    	String uri=ConfigReader.getInstance().getDockerRestApiUri();
+		if (uri.startsWith(DockerHelper.UNIX_SCHEME)) {
 			return containerInfo.getGatewayIP();
 		} else {
-			return uri.getHost();
+			return URI.create(uri).getHost();
 		}
 	}
 

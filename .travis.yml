@@ -25,7 +25,7 @@ jobs:
         - mvn cobertura:cobertura -B
     - stage: Build
       script:
-        - docker-compose up
+        - docker-compose up --build
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)

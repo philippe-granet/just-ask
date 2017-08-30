@@ -38,12 +38,12 @@ public class ConfigReaderTest {
 
 		Assert.assertEquals(GridRole.HUB.toString(), config.getGridHubConfiguration().role);
 		Assert.assertTrue(1234 == config.getGridHubConfiguration().port);
-		Assert.assertTrue(GridHubConfiguration.DEFAULT_CLEANUP_CYCLE == config.getGridHubConfiguration().cleanUpCycle);
+		Assert.assertTrue(1000 == config.getGridHubConfiguration().cleanUpCycle);
 		Assert.assertTrue(GridHubConfiguration.DEFAULT_NEW_SESSION_WAIT_TIMEOUT == config
 				.getGridHubConfiguration().newSessionWaitTimeout);
 		Assert.assertTrue(
 				GridHubConfiguration.DEFAULT_BROWSER_TIMEOUT == config.getGridHubConfiguration().browserTimeout);
-		Assert.assertTrue(GridHubConfiguration.DEFAULT_TIMEOUT == config.getGridHubConfiguration().timeout);
+		Assert.assertTrue(15 == config.getGridHubConfiguration().timeout);
 
 		Assert.assertTrue(config.getBrowsers().size() > 0);
 	}

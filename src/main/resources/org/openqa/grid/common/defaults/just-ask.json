@@ -20,7 +20,7 @@
 		"browsers": [
 			{
 				"browser": "chrome",
-				"defaultVersion": "59.0.3071.115",
+				"defaultVersion": "60.0.3112.113",
 				"versions": [
 					{
 						"version": "58.0.3029.81",
@@ -32,7 +32,11 @@
 								"/dev/shm:/dev/shm"
 							],
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					},
@@ -46,7 +50,29 @@
 								"/dev/shm:/dev/shm"
 							],
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
+							]
+						}
+					},
+					{
+						"version": "60.0.3112.113",
+						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+						"target": {
+							"image": "selenium/standalone-chrome:3.5.2-antimony",
+							"port": "4444",
+							"volumes": [
+								"/dev/shm:/dev/shm"
+							],
+							"env": [
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					}
@@ -54,7 +80,7 @@
 			},
 			{
 				"browser": "firefox",
-				"defaultVersion": "54.0",
+				"defaultVersion": "55.0.3",
 				"versions": [
 					{
 						"version": "52.0.2",
@@ -62,12 +88,16 @@
 						"target": {
 							"image": "selenium/standalone-firefox:3.4.0-actinium",
 							"port": "4444",
-							"shmSize": "2g",
 							"volumes": [
 								"/dev/shm:/dev/shm"
 							],
+							"shmSize": "2g",
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					},
@@ -77,12 +107,16 @@
 						"target": {
 							"image": "selenium/standalone-firefox:3.4.0-dysprosium",
 							"port": "4444",
-							"shmSize": "2g",
 							"volumes": [
 								"/dev/shm:/dev/shm"
 							],
+							"shmSize": "2g",
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					},
@@ -97,7 +131,30 @@
 							],
 							"shmSize": "2g",
 							"env": [
-								"JAVA_OPTS=-Xmx512m"
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
+							]
+						}
+					},
+					{
+						"version": "55.0.3",
+						"implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
+						"target": {
+							"image": "selenium/standalone-firefox:3.5.2-antimony",
+							"port": "4444",
+							"volumes": [
+								"/dev/shm:/dev/shm"
+							],
+							"shmSize": "2g",
+							"env": [
+								"JAVA_OPTS=-Xmx512m",
+								"TZ=UTC",
+								"SCREEN_WIDTH=1360",
+								"SCREEN_HEIGHT=1020",
+								"SCREEN_DEPTH=24"
 							]
 						}
 					}

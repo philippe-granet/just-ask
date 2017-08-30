@@ -125,8 +125,8 @@ public class JustAskServlet extends RegistryBasedServlet {
 	private StringEntity getJsonAsEntity(final String host, final int port) throws UnsupportedEncodingException {
 		try {
 			InputStream isr = Thread.currentThread().getContextClassLoader().getResourceAsStream("ondemand.json");
-			String string = IOUtils.toString(new InputStreamReader(isr));
-			JsonObject ondemand = new JsonParser().parse(string).getAsJsonObject();
+			String result = IOUtils.toString(new InputStreamReader(isr));
+			JsonObject ondemand = new JsonParser().parse(result).getAsJsonObject();
 			int maxSession = ConfigReader.getInstance().getMaxSession();
 			JsonArray capsArray = new JsonArray();
 			ondemand.add("capabilities", capsArray);
@@ -150,10 +150,17 @@ public class JustAskServlet extends RegistryBasedServlet {
 				}
 			}
 			JsonObject configuration = ondemand.get("configuration").getAsJsonObject();
+			
+			GridHubConfiguration gridHubConfiguration = ConfigReader.getInstance().getGridHubConfiguration();
+
+			
 			configuration.addProperty("maxSession", maxSession);
+			configuration.addProperty("browserTimeout", gridHubConfiguration.browserTimeout);
+			configuration.addProperty("timeout", gridHubConfiguration.timeout);
+			configuration.addProperty("enablePassThrough", gridHubConfiguration.enablePassThrough);
 			configuration.addProperty("hub", String.format("http://%s:%d", host, port));
-			string = ondemand.toString();
-			return new StringEntity(string);
+			result = ondemand.toString();
+			return new StringEntity(result);
 		} catch (IOException e) {
 			throw new GridException(e.getMessage(), e);
 		}

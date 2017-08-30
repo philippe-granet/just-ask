@@ -86,6 +86,9 @@ public final class DockerHelper {
 			getClient().removeContainer(id);
 		} catch (ContainerNotFoundException e) {
 			LOG.info("Fail to remove container {}, already removed!", id);
+			
+		} catch (Exception e) {
+			LOG.warn("Fail to remove container {} : "+e.getMessage(), id);
 		}
 	}
 

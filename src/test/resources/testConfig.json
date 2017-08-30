@@ -1,5 +1,8 @@
 {
 	"port": 1234,
+	"cleanUpCycle": 1000,
+	"timeout": 15,
+	"debug": true,
 	"justAsk": {
 		"dockerRestApiUri": "unix:///var/run/docker.sock",
 		"localhost": "0.0.0.0",

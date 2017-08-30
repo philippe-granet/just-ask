@@ -42,7 +42,7 @@ public class GhostProxy extends DefaultRemoteProxy {
 
     public GhostProxy(final RegistrationRequest request, final Registry registry) {
         super(request, registry);
-        LOG.info("Maximum sessions supported : " + ConfigReader.getInstance().getMaxSession());
+        LOG.info("Maximum sessions supported : " + config.maxSession);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class GhostProxy extends DefaultRemoteProxy {
     @Override
     public TestSession getNewSession(final Map<String, Object> requestedCapability) {
 
-        if (getTotalUsed() >= ConfigReader.getInstance().getMaxSession()) {
+        if (getTotalUsed() >= config.maxSession) {
             LOG.info("Waiting for remote nodes to be available");
             return null;
         }
@@ -137,5 +137,11 @@ public class GhostProxy extends DefaultRemoteProxy {
             localServer.shutdown();
             servers.remove(key);
         }
+    }
+    
+    @Override
+    public void afterSession(TestSession session) {
+    	super.afterSession(session);
+    	stopServerForTestSession(session);
     }
 }

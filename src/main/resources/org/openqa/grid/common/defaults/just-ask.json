@@ -63,6 +63,9 @@
 							"image": "selenium/standalone-firefox:3.4.0-actinium",
 							"port": "4444",
 							"shmSize": "2g",
+							"volumes": [
+								"/dev/shm:/dev/shm"
+							],
 							"env": [
 								"JAVA_OPTS=-Xmx512m"
 							]
@@ -75,6 +78,9 @@
 							"image": "selenium/standalone-firefox:3.4.0-dysprosium",
 							"port": "4444",
 							"shmSize": "2g",
+							"volumes": [
+								"/dev/shm:/dev/shm"
+							],
 							"env": [
 								"JAVA_OPTS=-Xmx512m"
 							]
@@ -86,6 +92,9 @@
 						"target": {
 							"image": "selenium/standalone-firefox:3.4.0-einsteinium",
 							"port": "4444",
+							"volumes": [
+								"/dev/shm:/dev/shm"
+							],
 							"shmSize": "2g",
 							"env": [
 								"JAVA_OPTS=-Xmx512m"

@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -16,20 +20,26 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.openqa.grid.common.GridRole;
 import org.openqa.grid.e2e.utils.GridTestHelper;
 import org.openqa.grid.e2e.utils.RegistryTestHelper;
 import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.SessionTerminationReason;
 import org.openqa.grid.web.Hub;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.net.UrlChecker;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
+import org.openqa.selenium.remote.server.log.LoggingOptions;
+import org.openqa.selenium.remote.server.log.TerseFormatter;
 import org.openqa.testing.FakeHttpServletResponse;
 import org.seleniumhq.jetty9.server.handler.ContextHandler;
 
@@ -40,12 +50,32 @@ import com.rationaleemotions.config.ConfigReader;
 public class JustAskServletTest extends BaseServletTest {
 	static Hub hub;
 
+	@Rule
+    public ExpectedException thrown = ExpectedException.none();
+	
 	@BeforeClass
 	public static void setUp() throws Exception {
 		Integer hubPort = PortProber.findFreePort();
 		String[] hubArgs = { "-role", GridRole.HUB.toString(), "-port", hubPort.toString(), "-hubConfig",
 				"src/test/resources/testConfig.json" };
 		ConfigReader config = ConfigReader.getInstance(hubArgs);
+
+		Level logLevel = config.getGridHubConfiguration().debug ? Level.FINE : LoggingOptions.getDefaultLogLevel();
+		if (logLevel == null) {
+			logLevel = Level.INFO;
+		}
+		Logger.getLogger("").setLevel(logLevel);
+		
+		for (Handler handler : Logger.getLogger("").getHandlers()) {
+			if (handler instanceof ConsoleHandler) {
+				handler.setLevel(logLevel);
+				handler.setFormatter(new TerseFormatter());
+			}
+		}
+		Logger.getLogger("org.glassfish").setLevel(Level.WARNING);
+		Logger.getLogger("org.apache").setLevel(Level.WARNING);
+		Logger.getLogger("net.bull").setLevel(Level.WARNING);
+		Logger.getLogger("org.seleniumhq.jetty9").setLevel(Level.WARNING);
 
 		hub = GridTestHelper.getHub(config.getGridHubConfiguration());
 		Registry registry = Registry.newInstance(hub, hub.getConfiguration());
@@ -82,6 +112,29 @@ public class JustAskServletTest extends BaseServletTest {
 		assertFalse(json.getAsJsonObject().get("success").getAsBoolean());
 		assertEquals("Cannot find test slot running session 123456789 in the registry.",
 				json.getAsJsonObject().get("msg").getAsString());
+	}
+
+	@Test
+	public void testTimeout() throws IOException, ServletException, URISyntaxException, InterruptedException {
+		DesiredCapabilities capabillities = DesiredCapabilities.chrome();
+		WebDriver driver = null;
+		try {
+			driver = new RemoteWebDriver(new URL(
+					String.format("http://%s:%d/wd/hub", hub.getConfiguration().host, hub.getConfiguration().port)),
+					capabillities);
+			driver.get("https://www.google.com/");
+			SessionId sessionId = ((RemoteWebDriver) driver).getSessionId();
+
+			Thread.sleep(20000);
+			
+			thrown.expect(WebDriverException.class);
+		    thrown.expectMessage(String.format("Session [%s] was terminated due to %s", sessionId, SessionTerminationReason.TIMEOUT));
+			
+		} finally {
+			if (driver != null) {
+				driver.quit();
+			}
+		}
 	}
 
 	@Test

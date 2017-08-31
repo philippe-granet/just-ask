@@ -9,14 +9,11 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.rationaleemotions.config.BrowserInfo;
-import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
 import com.rationaleemotions.server.docker.ContainerAttributes;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -51,7 +46,7 @@ public final class DockerHelper {
 
 	public static final String UNIX_SCHEME = "unix";
 
-    private static DockerClient dockerClient = new DefaultDockerClient(getInstance().getDockerRestApiUri());
+	private static DockerClient dockerClient = new DefaultDockerClient(getInstance().getDockerRestApiUri());
 
 	/**
 	 * @param id
@@ -86,9 +81,9 @@ public final class DockerHelper {
 			getClient().removeContainer(id);
 		} catch (ContainerNotFoundException e) {
 			LOG.info("Fail to remove container {}, already removed!", id);
-			
+
 		} catch (Exception e) {
-			LOG.warn("Fail to remove container {} : "+e.getMessage(), id);
+			LOG.warn("Fail to remove container {} : " + e.getMessage(), id);
 		}
 	}
 
@@ -109,7 +104,7 @@ public final class DockerHelper {
 
 		Preconditions.checkState("ok".equalsIgnoreCase(getClient().ping()),
 				"Ensuring that the Docker Daemon is up and running.");
-		DockerHelper.predownloadImagesIfRequired();
+		DockerHelper.predownloadImageIfRequired(containerAttributes.getImage());
 
 		final Map<String, List<PortBinding>> portBindings = new HashMap<>();
 
@@ -234,30 +229,16 @@ public final class DockerHelper {
 		LOG.debug("Cantainer available : {}", containerInfo);
 	}
 
-	private static void predownloadImagesIfRequired() throws DockerException, InterruptedException {
+	private static void predownloadImageIfRequired(String dockerImage) throws DockerException, InterruptedException {
 
 		DockerClient client = getClient();
-		LOG.info("Start downloading of images.");
-		Collection<BrowserInfo> browsers = getInstance().getBrowsers().values();
+		LOG.info("Start downloading of image {}", dockerImage);
 
-		Set<String> dockerImages = new HashSet<>();
-		for (BrowserInfo browser : browsers) {
-			for (BrowserVersionInfo browserVersion : browser.getVersions()) {
-				String dockerImage = browserVersion.getTargetAttribute("image").toString();
-
-				dockerImages.add(dockerImage);
-
-			}
-		}
 		ProgressHandler handler = new LoggingBuildHandler();
-		for (Iterator<String> iterator = dockerImages.iterator(); iterator.hasNext();) {
-			String dockerImage = iterator.next();
-			List<Image> foundImages = client.listImages(DockerClient.ListImagesParam.byName(dockerImage));
-			if (!foundImages.isEmpty()) {
-				LOG.info(
-						String.format("Skipping download for Image [%s] because it's already available.", dockerImage));
-				continue;
-			}
+		List<Image> foundImages = client.listImages(DockerClient.ListImagesParam.byName(dockerImage));
+		if (!foundImages.isEmpty()) {
+			LOG.info(String.format("Skipping download for Image [%s] because it's already available.", dockerImage));
+		} else {
 			client.pull(dockerImage, handler);
 		}
 	}

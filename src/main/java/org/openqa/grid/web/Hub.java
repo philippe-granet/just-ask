@@ -19,8 +19,8 @@ package org.openqa.grid.web;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -200,7 +200,7 @@ public class Hub {
 	}
 
 	private Map<Parameter, String> initJavaMelodyParameters() {
-		final Map<Parameter, String> parameters = new HashMap<>();
+		final Map<Parameter, String> parameters = new EnumMap<>(Parameter.class);
 		parameters.put(Parameter.SAMPLING_SECONDS, "10");
 		parameters.put(Parameter.UPDATE_CHECK_DISABLED, "true");
 		parameters.put(Parameter.NO_DATABASE, "true");

@@ -48,6 +48,10 @@ public final class DockerHelper {
 
 	private static DockerClient dockerClient = new DefaultDockerClient(getInstance().getDockerRestApiUri());
 
+	private DockerHelper() {
+		throw new IllegalStateException("Helper class");
+	}
+
 	/**
 	 * @param id
 	 *            - The ID of the container that is to be cleaned up.

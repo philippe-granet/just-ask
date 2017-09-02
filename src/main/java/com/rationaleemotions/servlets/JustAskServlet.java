@@ -60,6 +60,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private static final String SUCCESS = "success";
+	private static final String SESSION = "session";
 	
 	private static String hubHost;
 
@@ -78,7 +79,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 	@Override
 	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
-		if (req.getParameterMap().containsKey("session")) {
+		if (req.getParameterMap().containsKey(SESSION)) {
 			retrieveSessionInformations(req, resp);
 		} else {
 			addProxy();
@@ -239,14 +240,14 @@ public class JustAskServlet extends RegistryBasedServlet {
 		// the id can be specified via a param, or in the json request.
 		String session;
 		if (requestJSON == null) {
-			session = request.getParameter("session");
+			session = request.getParameter(SESSION);
 		} else {
-			if (!requestJSON.has("session")) {
+			if (!requestJSON.has(SESSION)) {
 				res.addProperty("msg",
 						"you need to specify at least a session or internalKey when call the test slot status service.");
 				return res;
 			}
-			session = requestJSON.get("session").getAsString();
+			session = requestJSON.get(SESSION).getAsString();
 		}
 
 		TestSession testSession = getRegistry().getHub().getRegistry()
@@ -259,7 +260,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		res.addProperty("msg", "slot found !");
 		res.remove(SUCCESS);
 		res.addProperty(SUCCESS, true);
-		res.addProperty("session", testSession.getExternalKey().getKey());
+		res.addProperty(SESSION, testSession.getExternalKey().getKey());
 		res.addProperty("internalKey", testSession.getInternalKey());
 		res.addProperty("inactivityTime", testSession.getInactivityTime());
 		TestSlot testSlot = testSession.getSlot();

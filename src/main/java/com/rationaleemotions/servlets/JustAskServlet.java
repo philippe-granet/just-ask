@@ -141,7 +141,14 @@ public class JustAskServlet extends RegistryBasedServlet {
 					jsonObject.addProperty(CapabilityType.VERSION, browserVersion.getVersion());
 					jsonObject.addProperty(RegistrationRequest.MAX_INSTANCES, maxSession);
 
-					if (browserVersion.getImplementation().equals(DockerBasedSeleniumServer.class.getName())) {
+					Class<?> clazz;
+					try {
+						clazz = Class.forName(browserVersion.getImplementation());
+					} catch (ClassNotFoundException e) {
+						 throw new IllegalStateException(e);
+					}
+					
+					if (clazz.isAssignableFrom(DockerBasedSeleniumServer.class)) {
 						jsonObject.addProperty(CapabilityType.PLATFORM, Platform.LINUX.toString());
 					} else {
 						jsonObject.addProperty(CapabilityType.PLATFORM, Platform.ANY.toString());
@@ -185,7 +192,8 @@ public class JustAskServlet extends RegistryBasedServlet {
 				try {
 					Thread.sleep(getSleepTimeBetweenChecks());
 				} catch (InterruptedException e) {
-					return;
+					LOG.warn("Interrupted!", e);
+				    Thread.currentThread().interrupt();
 				}
 				if(callServletToRegister()){
 					return;

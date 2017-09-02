@@ -13,6 +13,7 @@ only:
 cache:
   directories:
   - $HOME/.m2
+  - $HOME/.sonar/cache
 install: true
 jobs:
   include:

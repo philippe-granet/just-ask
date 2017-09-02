@@ -18,7 +18,8 @@ jobs:
   include:
     - stage: Build
       script:
-        - mvn -B -V clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar \
+        - |
+          mvn -B -V clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=philippe-granet-github \
             -Dsonar.login=$SONAR_LOGIN

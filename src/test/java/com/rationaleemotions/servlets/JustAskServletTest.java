@@ -106,6 +106,33 @@ public class JustAskServletTest extends BaseServletTest {
 	}
 
 	@Test
+	public void testNewSessionTimeout() throws IOException, ServletException, URISyntaxException {
+		DesiredCapabilities capabilities = DesiredCapabilities.chrome();
+		WebDriver driver1 = null;
+		WebDriver driver2 = null;
+		try {
+			driver1 = new RemoteWebDriver(new URL(
+					String.format("http://%s:%d/wd/hub", hub.getConfiguration().host, hub.getConfiguration().port)),
+					capabilities);
+			driver1.get("https://www.google.com/");
+			
+			thrown.expect(WebDriverException.class);
+			thrown.expectMessage("Request timed out waiting for a node to become available.");
+			driver2 = new RemoteWebDriver(new URL(
+					String.format("http://%s:%d/wd/hub", hub.getConfiguration().host, hub.getConfiguration().port)),
+					capabilities);
+
+		} finally {
+			if (driver1 != null) {
+				driver1.quit();
+			}
+			if (driver2 != null) {
+				driver2.quit();
+			}
+		}
+	}
+
+	@Test
 	public void testEnrollResponse() throws IOException, ServletException, URISyntaxException {
 		FakeHttpServletResponse response = sendCommand("GET", "/");
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
@@ -125,7 +152,7 @@ public class JustAskServletTest extends BaseServletTest {
 	}
 
 	@Test
-	public void testTimeout() throws IOException, ServletException, URISyntaxException, InterruptedException {
+	public void testSessionTimeout() throws IOException, ServletException, URISyntaxException, InterruptedException {
 		DesiredCapabilities capabillities = DesiredCapabilities.chrome();
 		WebDriver driver = null;
 		try {
@@ -150,12 +177,12 @@ public class JustAskServletTest extends BaseServletTest {
 
 	@Test
 	public void testChromeBrowser() throws IOException, ServletException, URISyntaxException {
-		DesiredCapabilities capabillities = DesiredCapabilities.chrome();
+		DesiredCapabilities capabilities = DesiredCapabilities.chrome();
 		WebDriver driver = null;
 		try {
 			driver = new RemoteWebDriver(new URL(
 					String.format("http://%s:%d/wd/hub", hub.getConfiguration().host, hub.getConfiguration().port)),
-					capabillities);
+					capabilities);
 			driver.get("https://www.google.com/");
 			assertEquals("Google", driver.getTitle());
 
@@ -169,13 +196,14 @@ public class JustAskServletTest extends BaseServletTest {
 
 			assertEquals(sessionId.toString(), json.getAsJsonObject().get("session").getAsString());
 			assertNotNull(json.getAsJsonObject().get("remoteUrl"));
+			
 		} finally {
 			if (driver != null) {
 				driver.quit();
 			}
 		}
 	}
-	
+
 	@Test
 	public void testChromeBrowserVersions() throws IOException, ServletException, URISyntaxException {
 		DesiredCapabilities capabillities = DesiredCapabilities.chrome();

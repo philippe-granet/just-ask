@@ -31,7 +31,8 @@ public class ConfigReader {
 	private static String[] args;
 
 	private Configuration configuration;
-
+	private String dockerRestApiUri;
+	
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
@@ -57,11 +58,14 @@ public class ConfigReader {
 		if (configuration == null) {
 			return null;
 		}
-		String dockerRestApiUri = configuration.getDockerRestApiUri();
-		if (dockerRestApiUri.startsWith(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
+		if(dockerRestApiUri != null){
+			return dockerRestApiUri;
+		}
+		String apiUri = configuration.getDockerRestApiUri();
+		if (apiUri.startsWith(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
 			NetworkUtils networkUtils = new NetworkUtils();
-			String defaultDockerRestApiUri = String.format("http://%s:2375",
-					networkUtils.getIp4NonLoopbackAddressOfThisMachine());
+			String defaultDockerRestApiUri = "http://" + networkUtils.getIpOfLoopBackIp4()
+					+ ":2375";
 
 			LOG.warn(
 					"\n\n*************************************************************\n"
@@ -72,8 +76,9 @@ public class ConfigReader {
 							+ "*************************************************************\n\n",
 					defaultDockerRestApiUri);
 
-			dockerRestApiUri = defaultDockerRestApiUri;
+			apiUri = defaultDockerRestApiUri;
 		}
+		dockerRestApiUri=apiUri;
 		return dockerRestApiUri;
 	}
 

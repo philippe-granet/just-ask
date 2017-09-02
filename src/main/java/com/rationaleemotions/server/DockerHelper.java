@@ -27,6 +27,7 @@ import com.rationaleemotions.server.ISeleniumServer.ServerException;
 import com.rationaleemotions.server.docker.ContainerAttributes;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.DockerClient.RemoveContainerParam;
 import com.spotify.docker.client.LogStream;
 import com.spotify.docker.client.LoggingBuildHandler;
 import com.spotify.docker.client.ProgressHandler;
@@ -82,12 +83,14 @@ public final class DockerHelper {
 	public static void removeContainer(final String id) throws DockerException, InterruptedException {
 		LOG.debug("Removing the container : [{}].", id);
 		try {
-			getClient().removeContainer(id);
+			if(!getClient().inspectContainer(id).hostConfig().autoRemove()){
+				getClient().removeContainer(id, RemoveContainerParam.removeVolumes());
+			}
 		} catch (ContainerNotFoundException e) {
 			LOG.info("Fail to remove container {}, already removed!", id);
 
 		} catch (Exception e) {
-			LOG.warn("Fail to remove container {} : " + e.getMessage(), id);
+			LOG.warn("Fail to remove container {} : " + e.getMessage(), id, e);
 		}
 	}
 

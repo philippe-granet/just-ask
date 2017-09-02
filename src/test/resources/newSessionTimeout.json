@@ -1,7 +1,7 @@
 {
 	"port": 1234,
 	"cleanUpCycle": 1000,
-	"timeout": 300,
+	"timeout": 300000,
 	"debug": false,
 	"newSessionWaitTimeout": 15,
 	"justAsk": {

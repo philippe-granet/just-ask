@@ -26,6 +26,7 @@ import com.rationaleemotions.server.DockerHelper;
  * A singleton instance that works as a configuration data source.
  */
 public class ConfigReader {
+	public static final String DEFAULT_WINDOWS_DOCKER_SOCKET = "http://127.0.0.1:2375";
 	public static final String DEFAULT_CONFIG_FILE = "defaults/just-ask.json";
 
 	private static String[] args;
@@ -57,17 +58,18 @@ public class ConfigReader {
 		if (configuration == null) {
 			return null;
 		}
-		String dockerRestApiUri=configuration.getDockerRestApiUri();
+		String dockerRestApiUri = configuration.getDockerRestApiUri();
 		if (dockerRestApiUri.startsWith(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
-			LOG.warn("\n\n*************************************************************\n"
-					+ "*************************************************************\n"
-					+ "Spotify client doesn't yet support npipe windows socket\n"
-					+ "https://github.com/spotify/docker-client/issues/875\n"
-					+ "Try to use TCP daemon http://127.0.0.1:2375\n"
-					+ "*************************************************************\n"
-					+ "*************************************************************\n\n");
+			LOG.warn(
+					"\n\n*************************************************************\n"
+							+ "*************************************************************\n"
+							+ "Spotify client doesn't yet support npipe windows socket\n"
+							+ "https://github.com/spotify/docker-client/issues/875\n" + "Try to use TCP daemon {}\n"
+							+ "*************************************************************\n"
+							+ "*************************************************************\n\n",
+					DEFAULT_WINDOWS_DOCKER_SOCKET);
 
-			dockerRestApiUri = "http://127.0.0.1:2375";
+			dockerRestApiUri = DEFAULT_WINDOWS_DOCKER_SOCKET;
 		}
 		return dockerRestApiUri;
 	}

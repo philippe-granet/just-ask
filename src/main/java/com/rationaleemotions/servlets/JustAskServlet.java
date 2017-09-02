@@ -83,7 +83,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		}
 	}
 
-	protected void retrieveSessionInformations(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+	protected void retrieveSessionInformations(final HttpServletRequest request, final HttpServletResponse response) {
 		response.setContentType("application/json");
 		response.setCharacterEncoding("UTF-8");
 		response.setStatus(HttpServletResponse.SC_OK);
@@ -92,8 +92,8 @@ public class JustAskServlet extends RegistryBasedServlet {
 			res = getJsonSessionInformations(request);
 			response.getWriter().print(res);
 			response.getWriter().close();
-		} catch (JsonSyntaxException e) {
-			throw new GridException(e.getMessage());
+		} catch (JsonSyntaxException | IOException e) {
+			throw new GridException(e.getMessage(), e);
 		}
 	}
 
@@ -145,9 +145,9 @@ public class JustAskServlet extends RegistryBasedServlet {
 					try {
 						clazz = Class.forName(browserVersion.getImplementation());
 					} catch (ClassNotFoundException e) {
-						 throw new IllegalStateException(e);
+						throw new IllegalStateException(e);
 					}
-					
+
 					if (clazz.isAssignableFrom(DockerBasedSeleniumServer.class)) {
 						jsonObject.addProperty(CapabilityType.PLATFORM, Platform.LINUX.toString());
 					} else {
@@ -157,10 +157,9 @@ public class JustAskServlet extends RegistryBasedServlet {
 				}
 			}
 			JsonObject configuration = ondemand.get("configuration").getAsJsonObject();
-			
+
 			GridHubConfiguration gridHubConfiguration = ConfigReader.getInstance().getGridHubConfiguration();
 
-			
 			configuration.addProperty("maxSession", maxSession);
 			configuration.addProperty("browserTimeout", gridHubConfiguration.browserTimeout);
 			configuration.addProperty("timeout", gridHubConfiguration.timeout);
@@ -193,9 +192,9 @@ public class JustAskServlet extends RegistryBasedServlet {
 					Thread.sleep(getSleepTimeBetweenChecks());
 				} catch (InterruptedException e) {
 					LOG.warn("Interrupted!", e);
-				    Thread.currentThread().interrupt();
+					Thread.currentThread().interrupt();
 				}
-				if(callServletToRegister()){
+				if (callServletToRegister()) {
 					return;
 				}
 			}
@@ -204,9 +203,8 @@ public class JustAskServlet extends RegistryBasedServlet {
 		private boolean callServletToRegister() {
 			HttpClientFactory httpClientFactory = new HttpClientFactory();
 			try {
-				final URL enrollServletEndpoint = new URL(
-						String.format("http://%s:%d/grid/admin/%s", gridHubConfiguration.host,
-								gridHubConfiguration.port, JustAskServlet.class.getSimpleName()));
+				final URL enrollServletEndpoint = new URL(String.format("http://%s:%d/grid/admin/%s",
+						gridHubConfiguration.host, gridHubConfiguration.port, JustAskServlet.class.getSimpleName()));
 
 				BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("GET",
 						enrollServletEndpoint.toExternalForm());
@@ -255,7 +253,8 @@ public class JustAskServlet extends RegistryBasedServlet {
 			session = requestJSON.get("session").getAsString();
 		}
 
-		TestSession testSession = getRegistry().getHub().getRegistry().getSession(ExternalSessionKey.fromString(session));
+		TestSession testSession = getRegistry().getHub().getRegistry()
+				.getSession(ExternalSessionKey.fromString(session));
 
 		if (testSession == null) {
 			res.addProperty("msg", "Cannot find test slot running session " + session + " in the registry.");
@@ -270,8 +269,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		TestSlot testSlot = testSession.getSlot();
 		res.addProperty("remoteUrl", testSlot.getRemoteURL().toExternalForm());
 		res.addProperty("lastSessionStart", testSlot.getLastSessionStart());
-		Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
-		        .setPrettyPrinting().create();
+		Gson gson = new GsonBuilder().enableComplexMapKeySerialization().setPrettyPrinting().create();
 		res.add("capabilities", gson.toJsonTree(testSlot.getCapabilities()));
 		RemoteProxy p = testSlot.getProxy();
 		res.addProperty("proxyId", p.getId());

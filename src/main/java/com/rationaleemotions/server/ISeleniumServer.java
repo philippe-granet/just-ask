@@ -17,7 +17,7 @@ import java.lang.invoke.MethodHandles;
  * Represents the capabilities that a typical selenium server should possess.
  */
 public interface ISeleniumServer {
-    final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     
     /**
      * @return - <code>true</code> if the server is running.

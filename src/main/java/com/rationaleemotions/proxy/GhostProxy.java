@@ -36,13 +36,13 @@ import com.rationaleemotions.server.SpawnedServer;
  * and then routing the session traffic to the spawned server.
  */
 public class GhostProxy extends DefaultRemoteProxy {
-	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private Map<String, SpawnedServer> servers = new MapMaker().initialCapacity(500).makeMap();
 
     public GhostProxy(final RegistrationRequest request, final Registry registry) {
         super(request, registry);
-        LOG.info("Maximum sessions supported : " + config.maxSession);
+        LOG.info("Maximum sessions supported : {}", config.maxSession);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class GhostProxy extends DefaultRemoteProxy {
             return null;
         }
 
-        LOG.debug("Trying to create a new session on node {}", this.toString());
+        LOG.debug("Trying to create a new session on node {}", this);
         
         // any slot left for the given app ?
         for (TestSlot testslot : getTestSlots()) {

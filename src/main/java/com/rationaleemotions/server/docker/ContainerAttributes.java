@@ -32,7 +32,7 @@ public class ContainerAttributes {
 
 	public List<String> getVolumes() {
 		if(this.volumes==null){
-			return null;
+			return Collections.emptyList();
 		}
 		return Collections.unmodifiableList(new LinkedList<String>(this.volumes));
 	}
@@ -47,7 +47,7 @@ public class ContainerAttributes {
 
 	public List<String> getPorts() {
 		if(this.ports==null){
-			return null;
+			return Collections.emptyList();
 		}
 		return Collections.unmodifiableList(new LinkedList<String>(this.ports));
 	}
@@ -62,7 +62,7 @@ public class ContainerAttributes {
 
 	public List<String> getEnvs() {
 		if(this.envs==null){
-			return null;
+			return Collections.emptyList();
 		}
 		return Collections.unmodifiableList(new LinkedList<String>(this.envs));
 	}

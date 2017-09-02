@@ -57,8 +57,10 @@ import com.rationaleemotions.server.DockerBasedSeleniumServer;
  */
 public class JustAskServlet extends RegistryBasedServlet {
 
-	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+	private static final String SUCCESS = "success";
+	
 	private static String hubHost;
 
 	static {
@@ -141,13 +143,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 					jsonObject.addProperty(CapabilityType.VERSION, browserVersion.getVersion());
 					jsonObject.addProperty(RegistrationRequest.MAX_INSTANCES, maxSession);
 
-					Class<?> clazz;
-					try {
-						clazz = Class.forName(browserVersion.getImplementation());
-					} catch (ClassNotFoundException e) {
-						throw new IllegalStateException(e);
-					}
-
+					Class<?> clazz = Class.forName(browserVersion.getImplementation());
 					if (clazz.isAssignableFrom(DockerBasedSeleniumServer.class)) {
 						jsonObject.addProperty(CapabilityType.PLATFORM, Platform.LINUX.toString());
 					} else {
@@ -167,7 +163,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 			configuration.addProperty("hub", String.format("http://%s:%d", host, port));
 			result = ondemand.toString();
 			return new StringEntity(result);
-		} catch (IOException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			throw new GridException(e.getMessage(), e);
 		}
 	}
@@ -238,7 +234,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		}
 
 		JsonObject res = new JsonObject();
-		res.addProperty("success", false);
+		res.addProperty(SUCCESS, false);
 
 		// the id can be specified via a param, or in the json request.
 		String session;
@@ -261,8 +257,8 @@ public class JustAskServlet extends RegistryBasedServlet {
 			return res;
 		}
 		res.addProperty("msg", "slot found !");
-		res.remove("success");
-		res.addProperty("success", true);
+		res.remove(SUCCESS);
+		res.addProperty(SUCCESS, true);
 		res.addProperty("session", testSession.getExternalKey().getKey());
 		res.addProperty("internalKey", testSession.getInternalKey());
 		res.addProperty("inactivityTime", testSession.getInactivityTime());

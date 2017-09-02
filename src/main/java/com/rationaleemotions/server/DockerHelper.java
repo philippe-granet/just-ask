@@ -42,7 +42,7 @@ import com.spotify.docker.client.messages.PortBinding;
  * A Helper class that facilitates interaction with a Docker Daemon.
  */
 public final class DockerHelper {
-	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	public static final String UNIX_SCHEME = "unix";
 
@@ -176,8 +176,7 @@ public final class DockerHelper {
 		final ContainerConfig containerConfig = ContainerConfig.builder().hostConfig(hostConfig)
 				.image(containerAttributes.getImage()).exposedPorts(new HashSet<String>(exposedPorts))
 				.env(containerAttributes.getEnvs()).build();
-		final ContainerCreation creation = getClient().createContainer(containerConfig, containerName);
-		return creation;
+		return getClient().createContainer(containerConfig, containerName);
 	}
 
 	/**
@@ -237,7 +236,7 @@ public final class DockerHelper {
 		ProgressHandler handler = new LoggingBuildHandler();
 		List<Image> foundImages = client.listImages(DockerClient.ListImagesParam.byName(dockerImage));
 		if (!foundImages.isEmpty()) {
-			LOG.info(String.format("Skipping download for Image [%s] because it's already available.", dockerImage));
+			LOG.info("Skipping download for Image [{}] because it's already available.", dockerImage);
 		} else {
 			client.pull(dockerImage, handler);
 		}

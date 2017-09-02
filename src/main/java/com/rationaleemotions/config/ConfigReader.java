@@ -26,14 +26,13 @@ import com.rationaleemotions.server.DockerHelper;
  * A singleton instance that works as a configuration data source.
  */
 public class ConfigReader {
-	public static final String DEFAULT_WINDOWS_DOCKER_SOCKET = "http://127.0.0.1:2375";
 	public static final String DEFAULT_CONFIG_FILE = "defaults/just-ask.json";
 
 	private static String[] args;
 
 	private Configuration configuration;
 
-	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	/**
 	 * @return - A {@link ConfigReader} that represents the configuration.
@@ -60,6 +59,10 @@ public class ConfigReader {
 		}
 		String dockerRestApiUri = configuration.getDockerRestApiUri();
 		if (dockerRestApiUri.startsWith(DockerHelper.UNIX_SCHEME) && SystemUtils.IS_OS_WINDOWS) {
+			NetworkUtils networkUtils = new NetworkUtils();
+			String defaultDockerRestApiUri = String.format("http://%s:2375",
+					networkUtils.getIp4NonLoopbackAddressOfThisMachine());
+
 			LOG.warn(
 					"\n\n*************************************************************\n"
 							+ "*************************************************************\n"
@@ -67,9 +70,9 @@ public class ConfigReader {
 							+ "https://github.com/spotify/docker-client/issues/875\n" + "Try to use TCP daemon {}\n"
 							+ "*************************************************************\n"
 							+ "*************************************************************\n\n",
-					DEFAULT_WINDOWS_DOCKER_SOCKET);
+					defaultDockerRestApiUri);
 
-			dockerRestApiUri = DEFAULT_WINDOWS_DOCKER_SOCKET;
+			dockerRestApiUri = defaultDockerRestApiUri;
 		}
 		return dockerRestApiUri;
 	}
@@ -134,20 +137,20 @@ public class ConfigReader {
 	}
 
 	public GridHubConfiguration getGridHubConfiguration() {
-		String[] args = ConfigReader.args;
-		if (args == null) {
+		String[] arguments = ConfigReader.args;
+		if (arguments == null) {
 			String[] mainCommand = System.getProperty("sun.java.command").split(" ");
-			args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
+			arguments = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
 		}
 
 		GridHubConfiguration pending = new GridHubConfiguration();
 		Integer defaultPort = pending.port;
-		new JCommander(pending, args);
+		new JCommander(pending, arguments);
 		GridHubConfiguration config = pending;
 		// re-parse the args using any -hubConfig specified to init
 		if (pending.hubConfig != null) {
 			config = GridHubConfiguration.loadFromJSON(pending.hubConfig);
-			new JCommander(config, args); // args take precedence
+			new JCommander(config, arguments); // args take precedence
 		}
 		if (config.host == null) {
 			NetworkUtils utils = new NetworkUtils();
@@ -159,7 +162,7 @@ public class ConfigReader {
 		return config;
 	}
 
-	private final static class ReaderInstance {
+	private static final class ReaderInstance {
 		private static final ConfigReader instance = new ConfigReader();
 
 		static {

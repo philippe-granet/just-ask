@@ -14,7 +14,7 @@ import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
 
 public final class SpawnedServer {
-	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private ISeleniumServer server;
 
@@ -22,7 +22,7 @@ public final class SpawnedServer {
         //We have a factory method. Hiding the constructor.
     }
 
-    public static SpawnedServer spawnInstance(final TestSession session) throws Exception {
+    public static SpawnedServer spawnInstance(final TestSession session) throws ClassNotFoundException, IllegalAccessException, InstantiationException, ServerException, InterruptedException {
         SpawnedServer server = startServer(session);
         server.waitSeleniumReady();
         
@@ -43,7 +43,7 @@ public final class SpawnedServer {
         } while (!isServerRunning && attempts.incrementAndGet() <= 10);
         
         if(!isServerRunning){
-        	 throw new ServerException(String.format("Failed to access Selenium Node"));
+        	 throw new ServerException("Failed to access Selenium Node");
         }
 	}
 

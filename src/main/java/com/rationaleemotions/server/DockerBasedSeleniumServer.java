@@ -24,7 +24,7 @@ import com.spotify.docker.client.exceptions.DockerException;
  */
 public class DockerBasedSeleniumServer implements ISeleniumServer {
 	
-	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	
 	private DockerHelper.ContainerInfo containerInfo;
 	
@@ -72,8 +72,8 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
     	String version = (String) requestedCapabilities.get(CapabilityType.BROWSER_VERSION);
     	
     	BrowserVersionInfo browserVersion = ConfigReader.getInstance().getBrowserVersion(browser, version);
-        String image = browserVersion.getTargetAttribute("image").toString();
-        int port = Integer.parseInt(browserVersion.getTargetAttribute("port").toString());
+        String image = browserVersion.getTargetAttribute("image");
+        int port = Integer.parseInt(browserVersion.getTargetAttribute("port"));
         
         List<String> ports = browserVersion.getTargetAttributeAsList("ports");
         List<String> volumes = browserVersion.getTargetAttributeAsList("volumes");
@@ -86,9 +86,7 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
         }
         // Capabilities envs overrides configured envs
         List<String> capabilitiesEnv = getConfiguredDockerEnvsFromCapabilities(requestedCapabilities);
-        if(capabilitiesEnv!=null && !capabilitiesEnv.isEmpty()){
-        	envs.addAll(capabilitiesEnv);
-        }
+        envs.addAll(capabilitiesEnv);
         
         Long shmSize=getShmSize(browserVersion.getTargetAttribute("shmSize"));
         
@@ -120,16 +118,16 @@ public class DockerBasedSeleniumServer implements ISeleniumServer {
     		return null;
     	}
     	try{
-    		if(shmSize.toString().endsWith("b")){
+    		if(shmSize.endsWith("b")){
 	    		return Long.parseLong(shmSize.replace("b", ""));
 	    		
-	    	} else if(shmSize.toString().endsWith("k")){
+	    	} else if(shmSize.endsWith("k")){
 	    		return Long.parseLong(shmSize.replace("k", ""))*1024L;
 	    		
-	    	} else if(shmSize.toString().endsWith("m")){
+	    	} else if(shmSize.endsWith("m")){
 	    		return Long.parseLong(shmSize.replace("m", ""))*1024L*1024L;
 	    		
-	    	} else if(shmSize.toString().endsWith("g")){
+	    	} else if(shmSize.endsWith("g")){
 	    		return Long.parseLong(shmSize.replace("g", ""))*1024L*1024L*1024L;
 	    		
 	    	} else {

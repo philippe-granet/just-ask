@@ -16,7 +16,7 @@ import java.util.Arrays;
  * selenium server as a separate process.
  */
 public class JvmBasedSeleniumServer implements ISeleniumServer {
-	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final String JAVA = System.getProperty("java.home") + File.separator + "bin" + File.separator +
         "java";
     private static final String CP = "-cp";

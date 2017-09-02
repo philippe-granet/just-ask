@@ -3,7 +3,7 @@
 	"cleanUpCycle": 1000,
 	"timeout": 300,
 	"debug": false,
-	"newSessionWaitTimeout": 5,
+	"newSessionWaitTimeout": 15,
 	"justAsk": {
 		"dockerRestApiUri": "unix:///var/run/docker.sock",
 		"localhost": "0.0.0.0",

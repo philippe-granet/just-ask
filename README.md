@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/philippe-granet/just-ask.svg?branch=master)](https://travis-ci.org/philippe-granet/just-ask/builds)
-[![SonarQube Tech Debt](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=sqale_debt_ratio)](https://sonarqube.com/dashboard?id=id=com.rationaleemotions%3Ajust-ask)
-[![Quality gate](https://sonarcloud.io/api/badges/gate?key=com.rationaleemotions%3Ajust-ask&metric=sqale_debt_ratio)](https://sonarqube.com/dashboard?id=id=com.rationaleemotions%3Ajust-ask)
-[![Bugs](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=bugs)](https://sonarqube.com/dashboard?id=id=com.rationaleemotions%3Ajust-ask)
-[![Vulnerabilities](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=vulnerabilities)](https://sonarqube.com/dashboard?id=id=com.rationaleemotions%3Ajust-ask)
+[![SonarQube Tech Debt](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=sqale_debt_ratio)](https://sonarqube.com/dashboard?id=com.rationaleemotions%3Ajust-ask)
+[![Quality gate](https://sonarcloud.io/api/badges/gate?key=com.rationaleemotions%3Ajust-ask&metric=sqale_debt_ratio)](https://sonarqube.com/dashboard?id=com.rationaleemotions%3Ajust-ask)
+[![Bugs](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=bugs)](https://sonarqube.com/dashboard?id=com.rationaleemotions%3Ajust-ask)
+[![Vulnerabilities](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=vulnerabilities)](https://sonarqube.com/dashboard?id=com.rationaleemotions%3Ajust-ask)
 
 # just-ask
 

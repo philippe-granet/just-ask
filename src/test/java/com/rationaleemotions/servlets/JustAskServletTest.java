@@ -12,29 +12,17 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.openqa.grid.common.GridRole;
-import org.openqa.grid.e2e.utils.GridTestHelper;
-import org.openqa.grid.e2e.utils.RegistryTestHelper;
-import org.openqa.grid.internal.Registry;
 import org.openqa.grid.internal.SessionTerminationReason;
-import org.openqa.grid.web.Hub;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
@@ -42,94 +30,23 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.net.PortProber;
-import org.openqa.selenium.net.UrlChecker;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
-import org.openqa.selenium.remote.server.log.LoggingOptions;
-import org.openqa.selenium.remote.server.log.TerseFormatter;
 import org.openqa.testing.FakeHttpServletResponse;
-import org.seleniumhq.jetty9.server.handler.ContextHandler;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.rationaleemotions.config.ConfigReader;
 
 public class JustAskServletTest extends BaseServletTest {
-	static Hub hub;
-
+	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		Integer hubPort = PortProber.findFreePort();
-		String[] hubArgs = { "-role", GridRole.HUB.toString(), "-port", hubPort.toString(), "-hubConfig",
-				"src/test/resources/testConfig.json" };
-		ConfigReader config = ConfigReader.getInstance(hubArgs);
-
-		Level logLevel = config.getGridHubConfiguration().debug ? Level.FINE : LoggingOptions.getDefaultLogLevel();
-		if (logLevel == null) {
-			logLevel = Level.INFO;
-		}
-		Logger.getLogger("").setLevel(logLevel);
-
-		for (Handler handler : Logger.getLogger("").getHandlers()) {
-			if (handler instanceof ConsoleHandler) {
-				handler.setLevel(logLevel);
-				handler.setFormatter(new TerseFormatter());
-			}
-		}
-		Logger.getLogger("org.glassfish").setLevel(Level.WARNING);
-		Logger.getLogger("org.apache").setLevel(Level.WARNING);
-		Logger.getLogger("net.bull").setLevel(Level.WARNING);
-		Logger.getLogger("org.seleniumhq.jetty9").setLevel(Level.WARNING);
-
-		hub = GridTestHelper.getHub(config.getGridHubConfiguration());
-		Registry registry = Registry.newInstance(hub, hub.getConfiguration());
-		servlet = new JustAskServlet() {
-			@Override
-			public ServletContext getServletContext() {
-				final ContextHandler.Context servletContext = new ContextHandler().getServletContext();
-				servletContext.setAttribute(Registry.KEY, registry);
-				return servletContext;
-			}
-		};
-		servlet.init();
-		UrlChecker urlChecker = new UrlChecker();
-		urlChecker.waitUntilAvailable(10, TimeUnit.SECONDS, new URL(
-				String.format("http://%s:%d/grid/console", hub.getConfiguration().host, hub.getConfiguration().port)));
-		sendCommand("GET", "/");
-		RegistryTestHelper.waitForNodes(registry);
-	}
-
-	@Test
-	public void testNewSessionTimeout() throws IOException, ServletException, URISyntaxException {
-		DesiredCapabilities capabilities = DesiredCapabilities.chrome();
-		WebDriver driver1 = null;
-		WebDriver driver2 = null;
-		try {
-			driver1 = new RemoteWebDriver(new URL(
-					String.format("http://%s:%d/wd/hub", hub.getConfiguration().host, hub.getConfiguration().port)),
-					capabilities);
-			driver1.get("https://www.google.com/");
-			
-			thrown.expect(WebDriverException.class);
-			thrown.expectMessage("Request timed out waiting for a node to become available.");
-			driver2 = new RemoteWebDriver(new URL(
-					String.format("http://%s:%d/wd/hub", hub.getConfiguration().host, hub.getConfiguration().port)),
-					capabilities);
-
-		} finally {
-			if (driver1 != null) {
-				driver1.quit();
-			}
-			if (driver2 != null) {
-				driver2.quit();
-			}
-		}
+		setUp("src/test/resources/testConfig.json");
 	}
 
 	@Test
@@ -324,9 +241,4 @@ public class JustAskServletTest extends BaseServletTest {
 		}
 	}
 
-	@AfterClass
-	public static void teardown() throws Exception {
-		hub.stop();
-		servlet.destroy();
-	}
 }

@@ -1,0 +1,11 @@
+version: '3'
+services:
+  just-ask-hub:
+    build: .
+    restart: always
+    ports:
+      - 4444:4444
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    environment:
+      - TZ=Europe/Paris

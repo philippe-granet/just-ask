@@ -1,22 +1,28 @@
+#!/bin/bash
+
+cat <<_EOF
 {
+  "host": null,
   "port": 4444,
-  "newSessionWaitTimeout": -1,
+  "role": "hub",
+  "maxSession": $GRID_MAX_SESSION,
+  "newSessionWaitTimeout": $GRID_NEW_SESSION_WAIT_TIMEOUT,
+  "capabilityMatcher": "org.openqa.grid.internal.utils.DefaultCapabilityMatcher",
+  "throwOnCapabilityNotPresent": $GRID_THROW_ON_CAPABILITY_NOT_PRESENT,
+  "jettyMaxThreads": $GRID_JETTY_MAX_THREADS,
+  "cleanUpCycle": $GRID_CLEAN_UP_CYCLE,
+  "browserTimeout": $GRID_BROWSER_TIMEOUT,
+  "timeout": $GRID_TIMEOUT,
+  "debug": $GRID_DEBUG,
   "servlets": [
     "com.rationaleemotions.servlets.JustAskServlet"
   ],
   "withoutServlets": [
   ],
-  "capabilityMatcher": "org.openqa.grid.internal.utils.DefaultCapabilityMatcher",
-  "throwOnCapabilityNotPresent": true,
-  "cleanUpCycle": 5000,
-  "role": "hub",
-  "debug": false,
-  "browserTimeout": 0,
-  "timeout": 1800,
   "justAsk": {
     "dockerRestApiUri": "unix:///var/run/docker.sock",
     "localhost": "0.0.0.0",
-    "maxSession": 5,
+    "maxSession": $GRID_MAX_SESSION,
     "browsers": [
       {
         "browser": "chrome",
@@ -33,7 +39,7 @@
               ],
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
+                "TZ=${TZ}",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"
@@ -51,7 +57,7 @@
               ],
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
+                "TZ=${TZ}",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"
@@ -69,7 +75,7 @@
               ],
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
+                "TZ=${TZ}",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"
@@ -94,7 +100,7 @@
               "shmSize": "2g",
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
+                "TZ=${TZ}",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"
@@ -113,7 +119,7 @@
               "shmSize": "2g",
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
+                "TZ=${TZ}",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"
@@ -132,7 +138,7 @@
               "shmSize": "2g",
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
+                "TZ=${TZ}",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"
@@ -151,7 +157,7 @@
               "shmSize": "2g",
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
+                "TZ=${TZ}",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"
@@ -163,3 +169,5 @@
     ]
   }
 }
+
+_EOF

@@ -1,24 +1,70 @@
-FROM openjdk:8-jdk-alpine
-
-RUN apk add --no-cache curl tar bash
-ARG MAVEN_VERSION=3.3.9
-ARG USER_HOME_DIR="/root"
-RUN mkdir -p /usr/share/maven && \
-	curl -fsSL http://apache.osuosl.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar -xzC /usr/share/maven --strip-components=1 && \
-	ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-ENV MAVEN_HOME /usr/share/maven
-ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
-# speed up Maven JVM a bit
-ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-ENTRYPOINT ["/usr/bin/mvn"]
+#========================
+# Build
+#========================
+FROM maven:3.5.0-jdk-8-alpine as BUILDER
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
-
 COPY pom.xml /usr/src/app
-RUN mvn -B -U -V help:system clean verify -Dinvoker.skip=true -Dmaven.main.skip=true -Dmaven.plugin.skip=true -Dmaven.test.skip=true && \
-	rm -Rf target
-# copy other source files (keep in image)
-COPY . /usr/src/app
+COPY src /usr/src/app/src
 
-RUN mvn -B -V -e help:system install -DskipTests=true -Dmaven.javadoc.skip=true
+RUN mvn -B -V -e help:system install -DskipTests=true -Dmaven.javadoc.skip=true -DtrimStackTrace=false
+RUN echo $(mvn -q \
+    -Dexec.executable="echo" \
+    -Dexec.args='${project.version}' \
+    --non-recursive \
+    org.codehaus.mojo:exec-maven-plugin:1.6.0:exec) > target/project.version
+
+RUN cp target/just-ask-$(cat target/project.version)-jar-with-dependencies.jar target/just-ask-jar-with-dependencies.jar
+
+#========================
+# Docker image
+#========================
+FROM selenium/base:3.5.2-antimony
+LABEL maintainer="philippe.granet@gmail.com"
+
+USER seluser
+
+#========================
+# Docker Configuration
+#========================
+RUN sudo groupadd docker &&\
+	sudo usermod -aG docker seluser &&\
+	sudo usermod -aG staff seluser
+
+#========================
+# Just Ask library
+#========================
+COPY --from=BUILDER /usr/src/app/target/project.version /opt/selenium/just-ask.version
+COPY --from=BUILDER /usr/src/app/target/just-ask-jar-with-dependencies.jar /opt/selenium/
+
+#========================
+# Selenium Configuration
+#========================
+
+EXPOSE 4444
+
+# As integer, maps to "maxSession"
+ENV GRID_MAX_SESSION 5
+# In milliseconds, maps to "newSessionWaitTimeout"
+ENV GRID_NEW_SESSION_WAIT_TIMEOUT -1
+# As a boolean, maps to "throwOnCapabilityNotPresent"
+ENV GRID_THROW_ON_CAPABILITY_NOT_PRESENT true
+# As an integer
+ENV GRID_JETTY_MAX_THREADS -1
+# In milliseconds, maps to "cleanUpCycle"
+ENV GRID_CLEAN_UP_CYCLE 5000
+# In seconds, maps to "browserTimeout"
+ENV GRID_BROWSER_TIMEOUT 0
+# In seconds, maps to "timeout"
+ENV GRID_TIMEOUT 30
+# Debug
+ENV GRID_DEBUG false
+
+COPY generate_config \
+    entry_point.sh \
+    /opt/bin/
+RUN sudo chmod +x /opt/bin/generate_config /opt/bin/entry_point.sh
+RUN /opt/bin/generate_config > /opt/selenium/config.json
+
+CMD ["/opt/bin/entry_point.sh"]

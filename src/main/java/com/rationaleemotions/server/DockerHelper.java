@@ -4,10 +4,7 @@ import static com.rationaleemotions.config.ConfigReader.getInstance;
 import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.net.PortProber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +43,7 @@ public final class DockerHelper {
 
 	public static final String UNIX_SCHEME = "unix";
 
-	private static DockerClient dockerClient = new DefaultDockerClient(getInstance().getDockerRestApiUri());
+	private static DockerClient dockerClient = null;
 
 	private DockerHelper() {
 		throw new IllegalStateException("Helper class");
@@ -83,7 +79,7 @@ public final class DockerHelper {
 	public static void removeContainer(final String id) throws DockerException, InterruptedException {
 		LOG.debug("Removing the container : [{}].", id);
 		try {
-			if(!getClient().inspectContainer(id).hostConfig().autoRemove()){
+			if (!getClient().inspectContainer(id).hostConfig().autoRemove()) {
 				getClient().removeContainer(id, RemoveContainerParam.removeVolumes());
 			}
 		} catch (ContainerNotFoundException e) {
@@ -237,36 +233,22 @@ public final class DockerHelper {
 
 	private static void predownloadImageIfRequired(String dockerImage) throws DockerException, InterruptedException {
 
-		DockerClient client = getClient();
 		LOG.info("Start downloading of image {}", dockerImage);
 
 		ProgressHandler handler = new LoggingBuildHandler();
-		List<Image> foundImages = client.listImages(DockerClient.ListImagesParam.byName(dockerImage));
+		List<Image> foundImages = getClient().listImages(DockerClient.ListImagesParam.byName(dockerImage));
 		if (!foundImages.isEmpty()) {
 			LOG.info("Skipping download for Image [{}] because it's already available.", dockerImage);
 		} else {
-			client.pull(dockerImage, handler);
+			getClient().pull(dockerImage, handler);
 		}
 	}
 
 	private static DockerClient getClient() {
+		if (dockerClient == null) {
+			dockerClient = new DefaultDockerClient(getInstance().getDockerRestApiUri());
+		}
 		return dockerClient;
-	}
-
-	public static boolean isRunningInsideAContainer() {
-		File cgroup = new File("/proc/1/cgroup");
-		if (!cgroup.exists()) {
-			return false;
-		}
-		try {
-			String cgroupContent = FileUtils.readFileToString(cgroup, Charset.defaultCharset());
-			if (cgroupContent.contains("/docker/")) {
-				return true;
-			}
-		} catch (IOException e) {
-			LOG.error(e.getMessage(), e);
-		}
-		return false;
 	}
 
 	/**

@@ -15,7 +15,8 @@ cat <<_EOF
   "timeout": $GRID_TIMEOUT,
   "debug": $GRID_DEBUG,
   "servlets": [
-    "com.rationaleemotions.servlets.JustAskServlet"
+    "com.rationaleemotions.servlets.JustAskServlet",
+    "com.bravostudiodev.grid.HubRequestsProxyingServlet"
   ],
   "withoutServlets": [
   ],

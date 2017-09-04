@@ -16,7 +16,7 @@ cat <<_EOF
   "debug": $GRID_DEBUG,
   "servlets": [
     "com.rationaleemotions.servlets.JustAskServlet",
-    "com.bravostudiodev.grid.HubRequestsProxyingServlet"
+    "com.rationaleemotions.servlets.HubRequestsProxyingServlet"
   ],
   "withoutServlets": [
   ],

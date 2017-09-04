@@ -2,7 +2,8 @@
   "port": 4444,
   "newSessionWaitTimeout": -1,
   "servlets": [
-    "com.rationaleemotions.servlets.JustAskServlet"
+    "com.rationaleemotions.servlets.JustAskServlet",
+    "com.rationaleemotions.servlets.HubRequestsProxyingServlet"
   ],
   "withoutServlets": [
   ],

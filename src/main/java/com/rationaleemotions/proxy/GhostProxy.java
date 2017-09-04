@@ -5,11 +5,13 @@ import static org.openqa.grid.web.servlet.handler.RequestType.STOP_SESSION;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.openqa.grid.common.RegistrationRequest;
 import org.openqa.grid.common.SeleniumProtocol;
 import org.openqa.grid.common.exception.GridException;
@@ -61,9 +63,18 @@ public class GhostProxy extends DefaultRemoteProxy {
 
 		LOG.debug("Trying to create a new session on node {}", this);
 
+		Map<String, Object> requestedCapabilityWithVersion = new HashMap<>(requestedCapability);
+		
+		//if version is empty, use default version
+		String version=(String) requestedCapability.get(CapabilityType.BROWSER_VERSION);
+		if(StringUtils.isBlank(version)){
+			String browser=requestedCapability.get(CapabilityType.BROWSER_NAME).toString();
+			version=ConfigReader.getInstance().getBrowserDefaultVersion(browser).getVersion();
+			requestedCapabilityWithVersion.put(CapabilityType.BROWSER_VERSION, version);
+		}
 		// any slot left for the given app ?
 		for (TestSlot testslot : getTestSlots()) {
-			TestSession session = testslot.getNewSession(requestedCapability);
+			TestSession session = testslot.getNewSession(requestedCapabilityWithVersion);
 			if (session != null) {
 				return session;
 			}

@@ -9,3 +9,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
     environment:
       - TZ=Europe/Paris
+      - GRID_TIMEOUT=1800

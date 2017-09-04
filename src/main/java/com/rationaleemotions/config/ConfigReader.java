@@ -127,6 +127,10 @@ public class ConfigReader {
 			return getBrowserVersions(browser).get(version);
 		}
 	}
+	
+	public BrowserVersionInfo getBrowserDefaultVersion(final String browser) {
+		return getBrowserVersion(browser, null);
+	}
 
 	/**
 	 * @return - How many number of sessions are to be honoured at any given

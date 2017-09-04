@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY pom.xml /usr/src/app
 COPY src /usr/src/app/src
 
-RUN mvn -B -V -e help:system install -DskipTests=true -Dmaven.javadoc.skip=true -DtrimStackTrace=false
+RUN mvn -B -V -e help:system install -DskipTests=true -Dmaven.javadoc.skip=true
 RUN echo $(mvn -q \
     -Dexec.executable="echo" \
     -Dexec.args='${project.version}' \

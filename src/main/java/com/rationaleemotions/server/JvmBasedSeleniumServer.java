@@ -1,6 +1,8 @@
 package com.rationaleemotions.server;
 
-import com.rationaleemotions.servlets.JustAskServlet;
+import java.io.File;
+import java.lang.invoke.MethodHandles;
+
 import org.openqa.grid.internal.TestSession;
 import org.openqa.grid.selenium.GridLauncherV3;
 import org.openqa.selenium.net.NetworkUtils;
@@ -8,15 +10,11 @@ import org.openqa.selenium.net.PortProber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
-
 /**
  * Represents a {@link ISeleniumServer} implementation that is backed by a new JVM which executes the
  * selenium server as a separate process.
  */
-public class JvmBasedSeleniumServer implements ISeleniumServer {
+public class JvmBasedSeleniumServer extends AbstractSeleniumServer {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final String JAVA = System.getProperty("java.home") + File.separator + "bin" + File.separator +
         "java";
@@ -47,7 +45,7 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
     public int startServer(final TestSession session) throws ServerException {
         port = PortProber.findFreePort();
         String[] args = getArgs(port);
-        LOG.info("Spawning a Selenium server using the arguments [{}]", Arrays.toString(args));
+        LOG.info("Spawning a Selenium server using the arguments [{}]", (Object)args);
         
         ProcessBuilder pb = new ProcessBuilder(getArgs(port));
         try {

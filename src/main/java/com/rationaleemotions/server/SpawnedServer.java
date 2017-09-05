@@ -16,7 +16,7 @@ import com.rationaleemotions.server.ISeleniumServer.ServerException;
 public final class SpawnedServer {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private ISeleniumServer server;
+    private AbstractSeleniumServer server;
 
     private SpawnedServer() {
         //We have a factory method. Hiding the constructor.
@@ -82,9 +82,9 @@ public final class SpawnedServer {
         return server.getPort();
     }
 
-    private static ISeleniumServer newInstance(final String browser, final String version)
+    private static AbstractSeleniumServer newInstance(final String browser, final String version)
         throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        return (ISeleniumServer) getServerClass(browser,version).newInstance();
+        return (AbstractSeleniumServer) getServerClass(browser,version).newInstance();
     }
 
     private static Class<?> getServerClass(final String browser, final String version) throws ClassNotFoundException {

@@ -139,9 +139,9 @@ public final class DockerHelper {
 		if (!containerInfo.state().running()) {
 			// Start container
 			getClient().startContainer(id);
-			LOG.debug("Starting {}", containerInfo.name());
+			LOG.debug("Starting {}", containerName);
 		} else {
-			LOG.debug("{} was already running.", containerInfo.name());
+			LOG.debug("{} was already running.", containerName);
 		}
 
 		waitContainerAvailable(id);

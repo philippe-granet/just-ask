@@ -22,7 +22,7 @@ import com.spotify.docker.client.exceptions.DockerException;
  * selenium server within a docker container.
  *
  */
-public class DockerBasedSeleniumServer implements ISeleniumServer {
+public class DockerBasedSeleniumServer extends AbstractSeleniumServer {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	

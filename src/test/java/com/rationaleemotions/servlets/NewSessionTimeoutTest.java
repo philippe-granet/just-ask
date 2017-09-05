@@ -15,7 +15,7 @@ import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-public class NewSessionTimeoutTest extends BaseServletTest {
+public class NewSessionTimeoutTest extends BaseServletTestHelper {
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();

@@ -36,7 +36,7 @@ import org.seleniumhq.jetty9.server.handler.ContextHandler;
 import com.google.gson.JsonObject;
 import com.rationaleemotions.config.ConfigReader;
 
-public class BaseServletTest {
+public class BaseServletTestHelper {
 	private static final String BASE_URL = "http://localhost:4444";
 	private static final String CONTEXT_PATH = "/";
 

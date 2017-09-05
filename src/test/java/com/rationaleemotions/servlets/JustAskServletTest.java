@@ -39,7 +39,7 @@ import org.openqa.testing.FakeHttpServletResponse;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class JustAskServletTest extends BaseServletTest {
+public class JustAskServletTest extends BaseServletTestHelper {
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();

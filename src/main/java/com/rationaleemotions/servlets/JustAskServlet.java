@@ -61,8 +61,6 @@ public class JustAskServlet extends RegistryBasedServlet {
 
 	private static final String SUCCESS = "success";
 	private static final String SESSION = "session";
-	
-	private static String hubHost;
 
 	static {
 		new EnrollServletPoller().start();
@@ -107,7 +105,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		HttpClientFactory httpClientFactory = new HttpClientFactory(1000, 1000);
 		try {
 			final int port = getRegistry().getHub().getConfiguration().port;
-			hubHost = getRegistry().getHub().getConfiguration().host;
+			String hubHost = getRegistry().getHub().getConfiguration().host;
 			final URL registration = new URL(String.format("http://%s:%d/grid/register", hubHost, port));
 			BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST",
 					registration.toExternalForm());
@@ -167,10 +165,6 @@ public class JustAskServlet extends RegistryBasedServlet {
 		} catch (IOException | ClassNotFoundException e) {
 			throw new GridException(e.getMessage(), e);
 		}
-	}
-
-	public static String getHubHost() {
-		return hubHost;
 	}
 
 	private static class EnrollServletPoller extends Thread {

@@ -3,6 +3,7 @@ package com.rationaleemotions.server;
 import com.rationaleemotions.servlets.JustAskServlet;
 import org.openqa.grid.internal.TestSession;
 import org.openqa.grid.selenium.GridLauncherV3;
+import org.openqa.selenium.net.NetworkUtils;
 import org.openqa.selenium.net.PortProber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,7 @@ public class JvmBasedSeleniumServer implements ISeleniumServer {
 
     @Override
     public String getHost() {
-        return JustAskServlet.getHubHost();
+    	NetworkUtils networkUtils=new NetworkUtils();
+        return networkUtils.getIpOfLoopBackIp4();
     }
 }

@@ -1,4 +1,4 @@
-version: '3'
+version: '2.1'
 services:
   just-ask-hub:
     build: .
@@ -7,6 +7,7 @@ services:
       - 4444:4444
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
+    mem_limit: 256m
     environment:
       - TZ=Europe/Paris
       - GRID_TIMEOUT=1800

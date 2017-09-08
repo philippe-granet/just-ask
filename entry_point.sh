@@ -34,7 +34,16 @@ function shutdown {
     echo "shutdown complete"
 }
 
-java ${JAVA_OPTS} \
+java -version 
+java -server \
+  -XX:+UnlockExperimentalVMOptions \
+  -XX:+UseCGroupMemoryLimitForHeap \
+  -XX:MaxRAMFraction=1 \
+  -XX:+UseG1GC \
+  -XX:+UseStringDeduplication \
+  -XshowSettings:vm \
+  -Dsun.net.inetaddr.ttl=60 \
+  ${JAVA_OPTS} \
   -cp $ROOT/just-ask-jar-with-dependencies.jar:$ROOT/selenium-server-standalone.jar \
   org.openqa.grid.selenium.GridLauncherV3 \
   -role hub \

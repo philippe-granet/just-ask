@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="./grid/resources/org/openqa/grid/images/displayhelpservlet.css" media="all"/>
+  <link href="./grid/resources/org/openqa/grid/images/favicon.ico" rel="icon" type="image/x-icon" />
+  <script src="./grid/resources/org/openqa/grid/images/jquery-3.1.1.min.js" type="text/javascript"></script>
+  <script type="text/javascript">
+if (typeof String.prototype.endsWith !== 'function') {
+  String.prototype.endsWith = function(suffix) {
+      return this.indexOf(suffix, this.length - suffix.length) !== -1;
+  };
+}
+(function main() {
+  "use strict";
+  if(!window.jQuery){
+    if(document.location.href.endsWith('/')){
+      document.location.href=document.location.href+"..";
+    }else{
+      document.location.href=document.location.href+"/..";
+    }
+    return;
+  }
+  
+  $(document).ready(function () {
+    var type = JSON.parse(json).type,
+      version = JSON.parse(json).version,
+      consoleLink = JSON.parse(json).consoleLink,
+      wikiLink = 'https://github.com/SeleniumHQ/selenium/wiki/',
+      docsLink = 'http://docs.seleniumhq.org/docs/';
+
+    if (type.indexOf('Grid') > -1) {
+      wikiLink = 'https://github.com/SeleniumHQ/selenium/wiki/Grid2';
+      docsLink = 'http://docs.seleniumhq.org/docs/07_selenium_grid.jsp';
+    }
+
+    $(document).attr('title', 'Selenium ' + type + ' v.' + version);
+    $('.se-version').text(version);
+    $('.se-type').text(type);
+    $('.se-wiki').attr('href', wikiLink);
+    $('.se-docs').attr('href', docsLink);
+
+    if (consoleLink !== '') {
+      //$('.se-console').attr('href', consoleLink);
+      $('#console-item').attr('style', 'font-size: small; visibility: visible');
+    }
+  });
+}());
+
+    var json = Object.freeze('${servletConfigJson}');
+  </script>
+</head>
+<body>
+
+<div id="content">
+  <div id="help-heading">
+    <h1><span id="logo"></span></h1>
+    <h2>Selenium <span class="se-type"></span>&nbsp;v.<span class="se-version"></span></h2>
+  </div>
+
+  <div id="content-body">
+  	<h3>
+  		<img src="./grid/monitoring?resource=systemmonitor.png" width="16" height="16" alt="Stats"><a href="./grid/monitoring" target="_blank">Monitoring JavaMelody</a>
+	</h3>
+  	<h3>
+  		<img src="./grid/resources/org/openqa/grid/images/favicon.ico" width="16" height="16"><a href="./grid/console" target="_blank">Selenium <span class="se-type"></span> console</a>
+	</h3>
+	
+    <p>
+      For more information about Selenium <span class="se-type"></span> please see the
+      <a class="se-docs">docs</a> and/or visit the <a class="se-wiki">wiki</a>.
+    </p>
+    <p>
+      Happy Testing!
+    </p>
+  </div>
+
+  <div>
+    <footer id="help-footer">
+      Selenium is made possible through the efforts of our open source community, contributions from
+      these <a href="https://github.com/SeleniumHQ/selenium/blob/master/AUTHORS">people</a>, and our
+      <a href="http://www.seleniumhq.org/sponsors/">sponsors</a>.
+   </footer>
+  </div>
+ </div>
+
+</body>
+</html>

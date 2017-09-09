@@ -6,14 +6,17 @@ FROM maven:3.5.0-jdk-8-alpine as BUILDER
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 COPY pom.xml /usr/src/app
-COPY src /usr/src/app/src
-
-RUN mvn -B -V -e help:system install -DskipTests=true -Dmaven.javadoc.skip=true
+# get all the downloads out of the way
+RUN mvn -B -V -s /usr/share/maven/ref/settings-docker.xml help:system verify clean --fail-never
+RUN mkdir -p /usr/src/app/target
 RUN echo $(mvn -q \
     -Dexec.executable="echo" \
     -Dexec.args='${project.version}' \
     --non-recursive \
     org.codehaus.mojo:exec-maven-plugin:1.6.0:exec) > target/project.version
+
+COPY src /usr/src/app/src
+RUN mvn -B -V -e -s /usr/share/maven/ref/settings-docker.xml help:system install -DskipTests=true -Dmaven.javadoc.skip=true
 
 RUN cp target/just-ask-$(cat target/project.version)-jar-with-dependencies.jar target/just-ask-jar-with-dependencies.jar
 

@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/philippe-granet/just-ask.svg?branch=master)](https://travis-ci.org/philippe-granet/just-ask/builds)
+[![Dependency Status](https://www.versioneye.com/user/projects/59b4595c0fb24f002a981282/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/59b4595c0fb24f002a981282)
 [![Quality gate](https://sonarcloud.io/api/badges/gate?key=com.rationaleemotions%3Ajust-ask&metric=sqale_debt_ratio)](https://sonarqube.com/dashboard?id=com.rationaleemotions%3Ajust-ask)
 [![Code Coverage](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=coverage)](https://sonarqube.com/dashboard?id=com.rationaleemotions%3Ajust-ask)
 [![SonarQube Tech Debt](https://sonarcloud.io/api/badges/measure?key=com.rationaleemotions%3Ajust-ask&metric=sqale_debt_ratio)](https://sonarqube.com/dashboard?id=com.rationaleemotions%3Ajust-ask)

@@ -116,7 +116,7 @@ public class GhostProxy extends DefaultRemoteProxy {
 
 	@Override
 	public JsonObject getStatus() {
-		return new JsonParser().parse("{\"status\":0,\"value\":{\"build\":{\"version\":\"&#128123;\"}}}")
+		return new JsonParser().parse("{\"status\":0,\"value\":{\"build\":{\"version\":\""+getClass().getPackage().getImplementationVersion()+"&nbsp;&#128123;\"}}}")
 				.getAsJsonObject();
 	}
 

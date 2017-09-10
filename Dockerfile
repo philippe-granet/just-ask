@@ -23,7 +23,7 @@ RUN cp target/just-ask-$(cat target/project.version)-jar-with-dependencies.jar t
 #========================
 # Docker image
 #========================
-FROM selenium/base:3.5.2-antimony
+FROM selenium/base:3.5.3-astatine
 LABEL maintainer="philippe.granet@gmail.com"
 
 USER seluser

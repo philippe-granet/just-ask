@@ -108,7 +108,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 			assertEquals(HttpServletResponse.SC_OK, response.getStatus());
 			assertNotNull(response.getBody());
 			JsonObject json = new JsonParser().parse(response.getBody()).getAsJsonObject();
-			assertTrue(json.getAsJsonObject().get("success").getAsBoolean());
+			assertTrue(json.getAsJsonObject().toString(),json.getAsJsonObject().get("success").getAsBoolean());
 			assertEquals("slot found !", json.getAsJsonObject().get("msg").getAsString());
 
 			assertEquals(sessionId.toString(), json.getAsJsonObject().get("session").getAsString());
@@ -129,6 +129,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 		versionsUserAgent.put("58.0.3029.81", "58.0.3029.81");
 		versionsUserAgent.put("59.0.3071.115", "59.0.3071.115");
 		versionsUserAgent.put("60.0.3112.113", "60.0.3112.113");
+		versionsUserAgent.put("61.0.3163.79", "61.0.3163.79");
 		for (Map.Entry<String, String> versionUserAgent : versionsUserAgent.entrySet()) {
 			try {
 				capabillities.setCapability(CapabilityType.BROWSER_VERSION, versionUserAgent.getKey());
@@ -196,7 +197,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 			assertEquals(HttpServletResponse.SC_OK, response.getStatus());
 			assertNotNull(response.getBody());
 			JsonObject json = new JsonParser().parse(response.getBody()).getAsJsonObject();
-			assertTrue(json.getAsJsonObject().get("success").getAsBoolean());
+			assertTrue(json.getAsJsonObject().toString(),json.getAsJsonObject().get("success").getAsBoolean());
 			assertEquals("slot found !", json.getAsJsonObject().get("msg").getAsString());
 
 			assertEquals(sessionId.toString(), json.getAsJsonObject().get("session").getAsString());

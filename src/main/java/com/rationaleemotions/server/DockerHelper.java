@@ -263,7 +263,7 @@ public final class DockerHelper {
 		}
 	}
 
-	private static DockerClient getClient() {
+	private static synchronized DockerClient getClient() {
 		if (dockerClient == null) {
 			dockerClient = new DefaultDockerClient(getInstance().getDockerRestApiUri());
 		}

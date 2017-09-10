@@ -33,7 +33,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
@@ -49,7 +48,6 @@ import org.seleniumhq.jetty9.servlet.ServletHolder;
 
 import com.google.common.collect.Sets;
 import com.google.common.net.MediaType;
-import com.rationaleemotions.servlets.HubRequestsProxyingServlet;
 
 /**
  * @author IgorV

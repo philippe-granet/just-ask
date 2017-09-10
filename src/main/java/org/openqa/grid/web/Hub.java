@@ -33,6 +33,7 @@ import org.openqa.grid.web.servlet.DisplayHelpServlet;
 import org.openqa.grid.web.servlet.DriverServlet;
 import org.openqa.grid.web.servlet.Grid1HeartbeatServlet;
 import org.openqa.grid.web.servlet.HubStatusServlet;
+import org.openqa.grid.web.servlet.HubW3CStatusServlet;
 import org.openqa.grid.web.servlet.LifecycleServlet;
 import org.openqa.grid.web.servlet.ProxyStatusServlet;
 import org.openqa.grid.web.servlet.RegistrationServlet;
@@ -47,6 +48,7 @@ import org.seleniumhq.jetty9.server.Server;
 import org.seleniumhq.jetty9.server.ServerConnector;
 import org.seleniumhq.jetty9.servlet.FilterHolder;
 import org.seleniumhq.jetty9.servlet.ServletContextHandler;
+import org.seleniumhq.jetty9.servlet.ServletHolder;
 import org.seleniumhq.jetty9.util.thread.QueuedThreadPool;
 
 import com.google.common.collect.Maps;
@@ -117,6 +119,10 @@ public class Hub {
 		handler.addServlet(ProxyStatusServlet.class.getName(), "/grid/api/proxy/*");
 
 		handler.addServlet(HubStatusServlet.class.getName(), "/grid/api/hub/*");
+
+		ServletHolder statusHolder = new ServletHolder(new HubW3CStatusServlet(getRegistry()));
+		handler.addServlet(statusHolder, "/status");
+		handler.addServlet(statusHolder, "/wd/hub/status");
 
 		handler.addServlet(TestSessionStatusServlet.class.getName(), "/grid/api/testsession/*");
 

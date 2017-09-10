@@ -29,6 +29,7 @@ import com.spotify.docker.client.LoggingBuildHandler;
 import com.spotify.docker.client.ProgressHandler;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
@@ -86,10 +87,27 @@ public final class DockerHelper {
 			LOG.info("Fail to remove container {}, already removed!", id);
 
 		} catch (Exception e) {
-			LOG.warn("Fail to remove container {} : " + e.getMessage(), id, e);
+			LOG.warn("Fail to remove container {} : {}" , id, e.getMessage(), e);
 		}
 	}
 
+	public static void removeContainersWithLabel(String label) {
+		List<Container> containers = null;
+		try {
+			containers = getClient().listContainers(DockerClient.ListContainersParam.withLabel(label));
+		} catch (DockerException | InterruptedException e) {
+			LOG.warn("Fail to retrieve list of containers", e.getMessage(), e);
+		}
+		for(Container container:containers){
+			try {
+				LOG.info("Removing old container {} ..." , container.id());
+				killAndRemoveContainer(container.id());
+			} catch (DockerException | InterruptedException e) {
+				LOG.warn("Fail to remove container {} : {}" , container.id(), e.getMessage(), e);
+			}
+		}
+	}
+	
 	/**
 	 * @param A
 	 *            {@link ContainerAttributes} object
@@ -128,7 +146,7 @@ public final class DockerHelper {
 			portBinding.add(binding);
 			portBindings.put(port, portBinding);
 		}
-		String containerName = generateContainerName("just-ask", Integer.toString(containerPort));
+		String containerName = generateContainerName("just-ask-node", Integer.toString(containerPort));
 
 		final ContainerCreation creation = createContainer(containerName, containerAttributes, portBindings,
 				exposedPorts);
@@ -156,7 +174,7 @@ public final class DockerHelper {
 	}
 
 	private static String generateContainerName(String containerName, String nodePort) {
-		return String.format("%s_%s", containerName, nodePort);
+		return String.format("%s-%s", containerName, nodePort);
 	}
 
 	/**
@@ -178,6 +196,7 @@ public final class DockerHelper {
 
 		final ContainerConfig containerConfig = ContainerConfig.builder().hostConfig(hostConfig)
 				.image(containerAttributes.getImage()).exposedPorts(new HashSet<String>(exposedPorts))
+				.labels(containerAttributes.getLabels())
 				.env(containerAttributes.getEnvs()).build();
 		return getClient().createContainer(containerConfig, containerName);
 	}

@@ -19,6 +19,7 @@ import org.openqa.grid.internal.Registry;
 import org.openqa.grid.internal.SessionTerminationReason;
 import org.openqa.grid.internal.TestSession;
 import org.openqa.grid.internal.TestSlot;
+import org.openqa.grid.internal.listeners.RegistrationListener;
 import org.openqa.grid.selenium.proxy.DefaultRemoteProxy;
 import org.openqa.grid.web.servlet.handler.RequestType;
 import org.openqa.grid.web.servlet.handler.SeleniumBasedRequest;
@@ -31,6 +32,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.internal.ProxiedTestSlot;
+import com.rationaleemotions.server.DockerHelper;
 import com.rationaleemotions.server.SpawnedServer;
 
 /**
@@ -38,7 +40,7 @@ import com.rationaleemotions.server.SpawnedServer;
  * spinning off a server and then routing the session traffic to the spawned
  * server.
  */
-public class GhostProxy extends DefaultRemoteProxy {
+public class GhostProxy extends DefaultRemoteProxy implements RegistrationListener {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private Map<String, SpawnedServer> servers = new MapMaker().initialCapacity(500).makeMap();
@@ -82,6 +84,12 @@ public class GhostProxy extends DefaultRemoteProxy {
 		return null;
 	}
 
+	@Override
+	public void beforeRegistration() {
+		LOG.info("Cleanup old containers before registration");
+		DockerHelper.removeContainersWithLabel("just-ask-node");
+	}
+	
 	@Override
 	public void beforeCommand(final TestSession session, final HttpServletRequest request,
 			final HttpServletResponse response) {

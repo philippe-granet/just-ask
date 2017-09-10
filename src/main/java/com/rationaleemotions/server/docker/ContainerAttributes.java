@@ -2,8 +2,10 @@ package com.rationaleemotions.server.docker;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class ContainerAttributes {
 	private String image;
@@ -12,6 +14,7 @@ public class ContainerAttributes {
     private List<String> ports;
     private List<String> volumes;
     private List<String> envs;
+    private Map<String,String> labels;
 	private Long shmSize;
 
 	public String getImage() {
@@ -89,5 +92,16 @@ public class ContainerAttributes {
 
 	public void setShmSize(final Long shmSize) {
 		this.shmSize = shmSize;
+	}
+
+	public Map<String,String> getLabels() {
+		if(this.labels==null){
+			return Collections.emptyMap();
+		}
+		return Collections.unmodifiableMap(new HashMap<String,String>(this.labels));
+	}
+
+	public void setLabels(Map<String,String> labels) {
+		this.labels = labels;
 	}
 }

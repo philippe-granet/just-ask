@@ -123,7 +123,7 @@ public class HubRequestsProxyingServletPathsTest {
     public void setUp() throws IOException {
         httpServletRequestInputStream = IOUtils.toInputStream("httpServletRequestInputStream", "UTF-8");
         servlet = new HubRequestsProxyingServlet(registry);
-        servlet.requestForwardingClientProvider = requestForwardingClientProvider;
+        HubRequestsProxyingServlet.requestForwardingClientProvider = requestForwardingClientProvider;
 
         RequestForwardingClient requestForwardingClient = new RequestForwardingClient("test:5555", httpClientProvider);
 

@@ -145,32 +145,6 @@ public class ConfigReader {
 		return configuration.getMaxSession();
 	}
 
-	public GridHubConfiguration getGridHubConfiguration() {
-		String[] arguments = ConfigReader.args;
-		if (arguments == null) {
-			String[] mainCommand = System.getProperty("sun.java.command").split(" ");
-			arguments = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
-		}
-
-		GridHubConfiguration pending = new GridHubConfiguration();
-		Integer defaultPort = pending.port;
-		new JCommander(pending, arguments);
-		GridHubConfiguration config = pending;
-		// re-parse the args using any -hubConfig specified to init
-		if (pending.hubConfig != null) {
-			config = GridHubConfiguration.loadFromJSON(pending.hubConfig);
-			new JCommander(config, arguments); // args take precedence
-		}
-		if (config.host == null) {
-			NetworkUtils utils = new NetworkUtils();
-			config.host = utils.getIp4NonLoopbackAddressOfThisMachine().getHostAddress();
-		}
-		if (config.port == null) {
-			config.port = defaultPort;
-		}
-		return config;
-	}
-
 	private static final class ReaderInstance {
 		private static final ConfigReader instance = new ConfigReader();
 

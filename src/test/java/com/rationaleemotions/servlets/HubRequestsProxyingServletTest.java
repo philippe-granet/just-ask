@@ -158,7 +158,7 @@ public class HubRequestsProxyingServletTest {
         verify(mockedFunction, times(1)).apply(any(HttpServletRequest.class), any(HttpServletResponse.class));
     }
 
-    private Answer verifyRequestPath() {
+    private Answer<?> verifyRequestPath() {
         return invocationOnMock -> {
             HttpServletRequest req = (HttpServletRequest) invocationOnMock.getArguments()[0];
             assertThat(req.getPathInfo(), is("/proper/get/path/params"));
@@ -190,7 +190,7 @@ public class HubRequestsProxyingServletTest {
         httpPost.setEntity(entity);
     }
 
-    private Answer verifyRequestContent(final String contentType) {
+    private Answer<?> verifyRequestContent(final String contentType) {
         return invocationOnMock -> {
             HttpServletRequest req = (HttpServletRequest) invocationOnMock.getArguments()[0];
             assertThat(req.getContentType(), equalTo(contentType));
@@ -223,7 +223,7 @@ public class HubRequestsProxyingServletTest {
         assertThat(returnedContent, is("expected_content"));
     }
 
-    private Answer constructResponse(final String contentType) {
+    private Answer<?> constructResponse(final String contentType) {
         return invocationOnMock -> {
             HttpServletResponse resp = (HttpServletResponse) invocationOnMock.getArguments()[1];
             resp.setStatus(HttpServletResponse.SC_CREATED);

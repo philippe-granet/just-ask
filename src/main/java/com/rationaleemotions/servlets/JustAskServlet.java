@@ -8,14 +8,19 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -35,6 +40,12 @@ import org.openqa.grid.web.servlet.RegistryBasedServlet;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.internal.HttpClientFactory;
+import org.seleniumhq.jetty9.server.Handler;
+import org.seleniumhq.jetty9.server.Server;
+import org.seleniumhq.jetty9.server.ShutdownMonitor;
+import org.seleniumhq.jetty9.servlet.FilterHolder;
+import org.seleniumhq.jetty9.servlet.ServletContextHandler;
+import org.seleniumhq.jetty9.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +61,9 @@ import com.rationaleemotions.config.BrowserInfo;
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.server.DockerBasedSeleniumServer;
+
+import net.bull.javamelody.MonitoringFilter;
+import net.bull.javamelody.Parameter;
 
 /**
  * Represents a simple servlet that needs to be invoked in order to wire in our
@@ -153,7 +167,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 			}
 			JsonObject configuration = ondemand.get("configuration").getAsJsonObject();
 
-			GridHubConfiguration gridHubConfiguration = ConfigReader.getInstance().getGridHubConfiguration();
+			GridHubConfiguration gridHubConfiguration = getRegistry().getHub().getConfiguration();
 
 			configuration.addProperty("maxSession", maxSession);
 			configuration.addProperty("browserTimeout", gridHubConfiguration.browserTimeout);
@@ -170,7 +184,6 @@ public class JustAskServlet extends RegistryBasedServlet {
 	private static class EnrollServletPoller extends Thread {
 
 		private static long sleepTimeBetweenChecks = 500;
-		private static GridHubConfiguration gridHubConfiguration = ConfigReader.getInstance().getGridHubConfiguration();
 
 		protected long getSleepTimeBetweenChecks() {
 			return sleepTimeBetweenChecks;
@@ -178,6 +191,8 @@ public class JustAskServlet extends RegistryBasedServlet {
 
 		@Override
 		public void run() {
+			Registry registry = null;
+
 			while (true) {
 				try {
 					Thread.sleep(getSleepTimeBetweenChecks());
@@ -185,15 +200,34 @@ public class JustAskServlet extends RegistryBasedServlet {
 					LOG.warn("Interrupted!", e);
 					Thread.currentThread().interrupt();
 				}
-				if (callServletToRegister()) {
+				if(registry==null){
+					try {
+						Set<LifeCycle> lifeCycles = (Set<LifeCycle>) FieldUtils.readField(ShutdownMonitor.getInstance(),
+								"_lifeCycles", true);
+						for (LifeCycle lifeCycle : lifeCycles) {
+							if (lifeCycle instanceof Server) {
+								Handler handler = ((Server) lifeCycle).getHandler();
+								if (handler instanceof ServletContextHandler) {
+									registry = (Registry) ((ServletContextHandler) handler).getAttribute(Registry.KEY);
+									addJavaMelodyMonitoringFilter((ServletContextHandler) handler);
+								}
+							}
+						}
+					} catch (IllegalAccessException e) {
+						LOG.error("Error retrieving Server : " + e.getMessage(), e);
+					}
+				}
+
+				if (registry!=null && callServletToRegister(registry)) {
 					return;
 				}
 			}
 		}
 
-		private boolean callServletToRegister() {
+		private boolean callServletToRegister(Registry registry) {
 			HttpClientFactory httpClientFactory = new HttpClientFactory();
 			try {
+				GridHubConfiguration gridHubConfiguration = registry.getHub().getConfiguration();
 				final URL enrollServletEndpoint = new URL(String.format("http://%s:%d/grid/admin/%s",
 						gridHubConfiguration.host, gridHubConfiguration.port, JustAskServlet.class.getSimpleName()));
 
@@ -214,6 +248,32 @@ public class JustAskServlet extends RegistryBasedServlet {
 			}
 			return false;
 		}
+
+		private void addJavaMelodyMonitoringFilter(final ServletContextHandler root) {
+			// Add JavaMelody monitoring filter
+			final MonitoringFilter monitoringFilter = new MonitoringFilter();
+			monitoringFilter.setApplicationType("Standalone");
+			final FilterHolder filterHolder = new FilterHolder(monitoringFilter);
+			final Map<Parameter, String> parameters = initJavaMelodyParameters();
+			for (final Map.Entry<Parameter, String> entry : parameters.entrySet()) {
+				final Parameter parameter = entry.getKey();
+				final String value = entry.getValue();
+				filterHolder.setInitParameter(parameter.getCode(), value);
+			}
+			root.addFilter(filterHolder, "/*", EnumSet.of(DispatcherType.INCLUDE, DispatcherType.REQUEST));
+		}
+
+		private Map<Parameter, String> initJavaMelodyParameters() {
+			final Map<Parameter, String> parameters = new EnumMap<>(Parameter.class);
+			parameters.put(Parameter.SAMPLING_SECONDS, "10");
+			parameters.put(Parameter.UPDATE_CHECK_DISABLED, "true");
+			parameters.put(Parameter.NO_DATABASE, "true");
+
+			// set the path of the reports:
+			parameters.put(Parameter.MONITORING_PATH, "/grid/monitoring");
+			return parameters;
+		}
+
 	}
 
 	private JsonObject getJsonSessionInformations(final HttpServletRequest request) throws IOException {

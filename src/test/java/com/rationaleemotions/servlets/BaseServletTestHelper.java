@@ -23,10 +23,10 @@ import org.openqa.grid.common.GridRole;
 import org.openqa.grid.e2e.utils.GridTestHelper;
 import org.openqa.grid.e2e.utils.RegistryTestHelper;
 import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.utils.configuration.GridHubConfiguration;
 import org.openqa.grid.web.Hub;
 import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.net.UrlChecker;
-import org.openqa.selenium.remote.server.log.LoggingOptions;
 import org.openqa.selenium.remote.server.log.TerseFormatter;
 import org.openqa.testing.FakeHttpServletRequest;
 import org.openqa.testing.FakeHttpServletResponse;
@@ -47,12 +47,12 @@ public class BaseServletTestHelper {
 		Integer hubPort = PortProber.findFreePort();
 		String[] hubArgs = { "-role", GridRole.HUB.toString(), "-port", hubPort.toString(), "-hubConfig",
 				configFile };
-		ConfigReader config = ConfigReader.getInstance(hubArgs);
+		ConfigReader.getInstance(hubArgs);
 
-		Level logLevel = config.getGridHubConfiguration().debug ? Level.FINE : LoggingOptions.getDefaultLogLevel();
-		if (logLevel == null) {
-			logLevel = Level.INFO;
-		}
+		GridHubConfiguration gridHubConfiguration = GridHubConfiguration.loadFromJSON(configFile);
+		gridHubConfiguration.port = PortProber.findFreePort();
+
+		Level logLevel = Level.INFO;
 		Logger.getLogger("").setLevel(logLevel);
 
 		for (Handler handler : Logger.getLogger("").getHandlers()) {
@@ -66,7 +66,7 @@ public class BaseServletTestHelper {
 		Logger.getLogger("net.bull").setLevel(Level.WARNING);
 		Logger.getLogger("org.seleniumhq.jetty9").setLevel(Level.WARNING);
 
-		hub = GridTestHelper.getHub(config.getGridHubConfiguration());
+		hub = GridTestHelper.getHub(gridHubConfiguration);
 		Registry registry = Registry.newInstance(hub, hub.getConfiguration());
 		servlet = new JustAskServlet() {
 			@Override
@@ -89,6 +89,7 @@ public class BaseServletTestHelper {
 		hub.stop();
 		servlet.destroy();
 	}
+
 	protected static UrlInfo createUrl(String path) {
 		return new UrlInfo(BASE_URL, CONTEXT_PATH, path);
 	}
@@ -107,7 +108,7 @@ public class BaseServletTestHelper {
 		}
 		URIBuilder uriBuilder = new URIBuilder(urlInfo.toString());
 		List<NameValuePair> urlParameters = uriBuilder.getQueryParams();
-		
+
 		Map<String, String> urlParams = new HashMap<>();
 		for (NameValuePair nameValuePair : urlParameters) {
 			urlParams.put(nameValuePair.getName(), nameValuePair.getValue());

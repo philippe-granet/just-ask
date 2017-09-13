@@ -2,11 +2,9 @@ package com.rationaleemotions.servlets;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -30,11 +28,7 @@ import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.openqa.grid.common.RegistrationRequest;
 import org.openqa.grid.common.exception.GridConfigurationException;
 import org.openqa.grid.common.exception.GridException;
-import org.openqa.grid.internal.ExternalSessionKey;
 import org.openqa.grid.internal.Registry;
-import org.openqa.grid.internal.RemoteProxy;
-import org.openqa.grid.internal.TestSession;
-import org.openqa.grid.internal.TestSlot;
 import org.openqa.grid.internal.utils.configuration.GridHubConfiguration;
 import org.openqa.grid.web.servlet.RegistryBasedServlet;
 import org.openqa.selenium.Platform;
@@ -46,13 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.CharStreams;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import com.rationaleemotions.config.BrowserInfo;
 import com.rationaleemotions.config.BrowserVersionInfo;
 import com.rationaleemotions.config.ConfigReader;
@@ -71,9 +61,6 @@ public class JustAskServlet extends RegistryBasedServlet {
 
 	private static final int TIMEOUT_TEN_SECONDS = (int) SECONDS.toMillis(10);
 
-	private static final String SUCCESS = "success";
-	private static final String SESSION = "session";
-
 	static {
 		new EnrollServletPoller().start();
 	}
@@ -89,25 +76,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 	@Override
 	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
-		if (req.getParameterMap().containsKey(SESSION)) {
-			retrieveSessionInformations(req, resp);
-		} else {
-			addProxy();
-		}
-	}
-
-	protected void retrieveSessionInformations(final HttpServletRequest request, final HttpServletResponse response) {
-		response.setContentType("application/json");
-		response.setCharacterEncoding("UTF-8");
-		response.setStatus(HttpServletResponse.SC_OK);
-		JsonObject res;
-		try {
-			res = getJsonSessionInformations(request);
-			response.getWriter().print(res);
-			response.getWriter().close();
-		} catch (JsonSyntaxException | IOException e) {
-			throw new GridException(e.getMessage(), e);
-		}
+		addProxy();
 	}
 
 	private void addProxy() {
@@ -267,56 +236,5 @@ public class JustAskServlet extends RegistryBasedServlet {
 			return parameters;
 		}
 
-	}
-
-	private JsonObject getJsonSessionInformations(final HttpServletRequest request) throws IOException {
-		JsonObject requestJSON = null;
-		if (request.getInputStream() != null) {
-			String json;
-			try (Reader rd = new BufferedReader(new InputStreamReader(request.getInputStream()))) {
-				json = CharStreams.toString(rd);
-			}
-			if (!"".equals(json)) {
-				requestJSON = new JsonParser().parse(json).getAsJsonObject();
-			}
-		}
-
-		JsonObject res = new JsonObject();
-		res.addProperty(SUCCESS, false);
-
-		// the id can be specified via a param, or in the json request.
-		String session;
-		if (requestJSON == null) {
-			session = request.getParameter(SESSION);
-		} else {
-			if (!requestJSON.has(SESSION)) {
-				res.addProperty("msg",
-						"you need to specify at least a session or internalKey when call the test slot status service.");
-				return res;
-			}
-			session = requestJSON.get(SESSION).getAsString();
-		}
-
-		TestSession testSession = getRegistry().getHub().getRegistry()
-				.getSession(ExternalSessionKey.fromString(session));
-
-		if (testSession == null) {
-			res.addProperty("msg", "Cannot find test slot running session " + session + " in the registry.");
-			return res;
-		}
-		res.addProperty("msg", "slot found !");
-		res.remove(SUCCESS);
-		res.addProperty(SUCCESS, true);
-		res.addProperty(SESSION, testSession.getExternalKey().getKey());
-		res.addProperty("internalKey", testSession.getInternalKey());
-		res.addProperty("inactivityTime", testSession.getInactivityTime());
-		TestSlot testSlot = testSession.getSlot();
-		res.addProperty("remoteUrl", testSlot.getRemoteURL().toExternalForm());
-		res.addProperty("lastSessionStart", testSlot.getLastSessionStart());
-		Gson gson = new GsonBuilder().enableComplexMapKeySerialization().setPrettyPrinting().create();
-		res.add("capabilities", gson.toJsonTree(testSlot.getCapabilities()));
-		RemoteProxy p = testSlot.getProxy();
-		res.addProperty("proxyId", p.getId());
-		return res;
 	}
 }

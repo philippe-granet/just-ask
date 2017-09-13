@@ -2,7 +2,6 @@ package com.rationaleemotions.servlets;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -59,22 +58,6 @@ public class JustAskServletTest extends BaseServletTestHelper {
 		setUp("src/test/resources/testConfig.json");
 	}
 
-	@Test
-	public void testRetrieveUnknownSessionInformationsResponse()
-			throws IOException, ServletException, URISyntaxException {
-		URL url = new URL(String.format("http://%s:%d/grid/admin/JustAskServlet?session=123456789", hub.getConfiguration().host,
-				hub.getConfiguration().port));
-
-		HttpResponse response = sendCommand("GET", url);
-		assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
-		String body = IOUtils.toString(response.getEntity().getContent(),Charset.forName("UTF-8"));
-		assertNotNull(body);
-		JsonObject json = new JsonParser().parse(body).getAsJsonObject();
-		assertFalse(json.getAsJsonObject().get("success").getAsBoolean());
-		assertEquals("Cannot find test slot running session 123456789 in the registry.",
-				json.getAsJsonObject().get("msg").getAsString());
-	}
-
 	private HttpResponse sendCommand(String method, URL url) throws ClientProtocolException, IOException {
 		HttpClientFactory httpClientFactory = new HttpClientFactory(TIMEOUT_TEN_SECONDS, TIMEOUT_TEN_SECONDS);
 
@@ -121,7 +104,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 
 			SessionId sessionId = ((RemoteWebDriver) driver).getSessionId();
 			
-			URL url = new URL(String.format("http://%s:%d/grid/admin/JustAskServlet?session="+ sessionId.toString(), hub.getConfiguration().host,
+			URL url = new URL(String.format("http://%s:%d/grid/api/testsession?session="+ sessionId.toString(), hub.getConfiguration().host,
 					hub.getConfiguration().port));
 
 			HttpResponse response = sendCommand("GET", url);
@@ -133,7 +116,6 @@ public class JustAskServletTest extends BaseServletTestHelper {
 			assertEquals("slot found !", json.getAsJsonObject().get("msg").getAsString());
 
 			assertEquals(sessionId.toString(), json.getAsJsonObject().get("session").getAsString());
-			assertNotNull(json.getAsJsonObject().get("remoteUrl"));
 
 		} finally {
 			if (driver != null) {
@@ -215,7 +197,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 
 			SessionId sessionId = ((RemoteWebDriver) driver).getSessionId();
 			
-			URL url = new URL(String.format("http://%s:%d/grid/admin/JustAskServlet?session="+ sessionId.toString(), hub.getConfiguration().host,
+			URL url = new URL(String.format("http://%s:%d/grid/api/testsession?session="+ sessionId.toString(), hub.getConfiguration().host,
 					hub.getConfiguration().port));
 
 			HttpResponse response = sendCommand("GET", url);
@@ -228,7 +210,6 @@ public class JustAskServletTest extends BaseServletTestHelper {
 			assertEquals("slot found !", json.getAsJsonObject().get("msg").getAsString());
 
 			assertEquals(sessionId.toString(), json.getAsJsonObject().get("session").getAsString());
-			assertNotNull(json.getAsJsonObject().get("remoteUrl"));
 
 		} finally {
 			if (driver != null) {

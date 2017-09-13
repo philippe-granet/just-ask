@@ -1,5 +1,6 @@
 package com.rationaleemotions.servlets;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -34,13 +42,15 @@ import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
-import org.openqa.testing.FakeHttpServletResponse;
+import org.openqa.selenium.remote.internal.HttpClientFactory;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class JustAskServletTest extends BaseServletTestHelper {
-	
+
+	private static final int TIMEOUT_TEN_SECONDS = (int) SECONDS.toMillis(10);
+
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
@@ -50,22 +60,28 @@ public class JustAskServletTest extends BaseServletTestHelper {
 	}
 
 	@Test
-	public void testEnrollResponse() throws IOException, ServletException, URISyntaxException {
-		FakeHttpServletResponse response = sendCommand("GET", "/");
-		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-		assertNotNull(response.getBody());
-	}
-
-	@Test
 	public void testRetrieveUnknownSessionInformationsResponse()
 			throws IOException, ServletException, URISyntaxException {
-		FakeHttpServletResponse response = sendCommand("GET", "/?session=123456789");
-		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-		assertNotNull(response.getBody());
-		JsonObject json = new JsonParser().parse(response.getBody()).getAsJsonObject();
+		URL url = new URL(String.format("http://%s:%d/grid/admin/JustAskServlet?session=123456789", hub.getConfiguration().host,
+				hub.getConfiguration().port));
+
+		HttpResponse response = sendCommand("GET", url);
+		assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
+		String body = IOUtils.toString(response.getEntity().getContent(),Charset.forName("UTF-8"));
+		assertNotNull(body);
+		JsonObject json = new JsonParser().parse(body).getAsJsonObject();
 		assertFalse(json.getAsJsonObject().get("success").getAsBoolean());
 		assertEquals("Cannot find test slot running session 123456789 in the registry.",
 				json.getAsJsonObject().get("msg").getAsString());
+	}
+
+	private HttpResponse sendCommand(String method, URL url) throws ClientProtocolException, IOException {
+		HttpClientFactory httpClientFactory = new HttpClientFactory(TIMEOUT_TEN_SECONDS, TIMEOUT_TEN_SECONDS);
+
+		BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest(method, url.toExternalForm());
+		HttpHost host = new HttpHost(url.getHost(), url.getPort());
+		HttpClient client = httpClientFactory.getHttpClient();
+		return client.execute(host, request);
 	}
 
 	@Test
@@ -104,16 +120,21 @@ public class JustAskServletTest extends BaseServletTestHelper {
 			assertEquals("Google", driver.getTitle());
 
 			SessionId sessionId = ((RemoteWebDriver) driver).getSessionId();
-			FakeHttpServletResponse response = sendCommand("GET", "/?session=" + sessionId.toString());
-			assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-			assertNotNull(response.getBody());
-			JsonObject json = new JsonParser().parse(response.getBody()).getAsJsonObject();
-			assertTrue(json.getAsJsonObject().toString(),json.getAsJsonObject().get("success").getAsBoolean());
+			
+			URL url = new URL(String.format("http://%s:%d/grid/admin/JustAskServlet?session="+ sessionId.toString(), hub.getConfiguration().host,
+					hub.getConfiguration().port));
+
+			HttpResponse response = sendCommand("GET", url);
+			assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
+			String body = IOUtils.toString(response.getEntity().getContent(),Charset.forName("UTF-8"));
+			assertNotNull(body);
+			JsonObject json = new JsonParser().parse(body).getAsJsonObject();
+			assertTrue(json.getAsJsonObject().toString(), json.getAsJsonObject().get("success").getAsBoolean());
 			assertEquals("slot found !", json.getAsJsonObject().get("msg").getAsString());
 
 			assertEquals(sessionId.toString(), json.getAsJsonObject().get("session").getAsString());
 			assertNotNull(json.getAsJsonObject().get("remoteUrl"));
-			
+
 		} finally {
 			if (driver != null) {
 				driver.quit();
@@ -193,11 +214,17 @@ public class JustAskServletTest extends BaseServletTestHelper {
 			assertEquals("Google", driver.getTitle());
 
 			SessionId sessionId = ((RemoteWebDriver) driver).getSessionId();
-			FakeHttpServletResponse response = sendCommand("GET", "/?session=" + sessionId.toString());
-			assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-			assertNotNull(response.getBody());
-			JsonObject json = new JsonParser().parse(response.getBody()).getAsJsonObject();
-			assertTrue(json.getAsJsonObject().toString(),json.getAsJsonObject().get("success").getAsBoolean());
+			
+			URL url = new URL(String.format("http://%s:%d/grid/admin/JustAskServlet?session="+ sessionId.toString(), hub.getConfiguration().host,
+					hub.getConfiguration().port));
+
+			HttpResponse response = sendCommand("GET", url);
+			assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
+			String body = IOUtils.toString(response.getEntity().getContent(),Charset.forName("UTF-8"));
+			
+			assertNotNull(body);
+			JsonObject json = new JsonParser().parse(body).getAsJsonObject();
+			assertTrue(json.getAsJsonObject().toString(), json.getAsJsonObject().get("success").getAsBoolean());
 			assertEquals("slot found !", json.getAsJsonObject().get("msg").getAsString());
 
 			assertEquals(sessionId.toString(), json.getAsJsonObject().get("session").getAsString());

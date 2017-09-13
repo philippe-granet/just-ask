@@ -1,7 +1,6 @@
 package com.rationaleemotions.config;
 
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,19 +15,17 @@ import org.openqa.selenium.net.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.beust.jcommander.JCommander;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.rationaleemotions.server.DockerHelper;
+import com.rationaleemotions.servlets.ServerHelper;
 
 /**
  * A singleton instance that works as a configuration data source.
  */
 public class ConfigReader {
 	public static final String DEFAULT_CONFIG_FILE = "defaults/just-ask.json";
-
-	private static String[] args;
 
 	private Configuration configuration;
 	private String dockerRestApiUri;
@@ -39,15 +36,6 @@ public class ConfigReader {
 	 * @return - A {@link ConfigReader} that represents the configuration.
 	 */
 	public static ConfigReader getInstance() {
-		return ReaderInstance.instance;
-	}
-
-	/**
-	 * @param args
-	 * @return A {@link ConfigReader} that represents the configuration.
-	 */
-	public static ConfigReader getInstance(String[] args) {
-		ConfigReader.args = args;
 		return ReaderInstance.instance;
 	}
 
@@ -163,17 +151,11 @@ public class ConfigReader {
 		}
 
 		private static JsonElement getJustAskConfiguration() {
-			String[] args = ConfigReader.args;
-			if (args == null) {
-				String[] mainCommand = System.getProperty("sun.java.command").split(" ");
-				args = Arrays.copyOfRange(mainCommand, 1, mainCommand.length);
-			}
-
-			GridHubConfiguration pending = new GridHubConfiguration();
-			new JCommander(pending, args);
+			
+			GridHubConfiguration config = ServerHelper.getHubRegistry().getHub().getConfiguration();
 			String confFile = DEFAULT_CONFIG_FILE;
-			if (pending.hubConfig != null) {
-				confFile = pending.hubConfig;
+			if (config.hubConfig != null) {
+				confFile = config.hubConfig;
 			}
 			LOG.info("Load configuration file {}", confFile);
 			return JSONConfigurationUtils.loadJSON(confFile).get("justAsk");

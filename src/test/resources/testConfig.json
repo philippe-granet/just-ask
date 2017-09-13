@@ -4,6 +4,10 @@
 	"timeout": 15,
 	"debug": false,
 	"newSessionWaitTimeout": -1,
+    "servlets": [
+      "com.rationaleemotions.servlets.JustAskServlet",
+      "com.rationaleemotions.servlets.HubRequestsProxyingServlet"
+    ],
 	"justAsk": {
 		"dockerRestApiUri": "unix:///var/run/docker.sock",
 		"localhost": "0.0.0.0",

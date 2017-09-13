@@ -62,32 +62,6 @@ public class RegistryTestHelper {
 		});
 	}
 
-	public static void waitForActiveTestSessionCount(final Registry r, final int activeTestSessions) {
-		newWait().until(new Function<Object, Integer>() {
-			@Override
-			public Integer apply(Object input) {
-				Integer i = r.getActiveSessions().size();
-				if (i != activeTestSessions) {
-					return null;
-				}
-				return i;
-			}
-		});
-	}
-
-	public static void waitForNewSessionRequestCount(final Registry r, final int newSessionRequestCount) {
-		newWait().until(new Function<Object, Integer>() {
-			@Override
-			public Integer apply(Object input) {
-				Integer i = r.getNewSessionRequestCount();
-				if (i != newSessionRequestCount) {
-					return null;
-				}
-				return i;
-			}
-		});
-	}
-
 	private static Wait<Object> newWait() {
 		return new FluentWait<Object>("").withTimeout(30, SECONDS);
 	}

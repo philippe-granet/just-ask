@@ -17,70 +17,29 @@
 
 package org.openqa.grid.e2e.utils;
 
-import com.beust.jcommander.JCommander;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
-import org.openqa.grid.common.GridRole;
-import org.openqa.grid.common.RegistrationRequest;
-import org.openqa.grid.common.SeleniumProtocol;
-import org.openqa.grid.internal.utils.SelfRegisteringRemote;
-import org.openqa.grid.internal.utils.configuration.GridHubConfiguration;
-import org.openqa.grid.internal.utils.configuration.GridNodeConfiguration;
-import org.openqa.grid.web.Hub;
-import org.openqa.selenium.net.PortProber;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.google.common.base.Function;
+import com.rationaleemotions.servlets.ServerHelper;
 
 public class GridTestHelper {
 
-	public static SelfRegisteringRemote getRemoteWithoutCapabilities(Hub hub, GridRole role) {
-		return getRemoteWithoutCapabilities(hub.getUrl(), role);
+	public static void waitForGrid() {
+		newWait().until(new Function<Object, Boolean>() {
+			@Override
+			public Boolean apply(Object input) {
+				if (ServerHelper.getHubRegistry()==null) {
+					return false;
+				}
+				return true;
+			}
+		});
 	}
-
-	public static SelfRegisteringRemote getRemoteWithoutCapabilities(URL hub, GridRole role) {
-		String[] args = { "-role", "node", "-host", "localhost", "-hub", hub.toString(), "-port",
-				String.valueOf(PortProber.findFreePort()) };
-		GridNodeConfiguration config = new GridNodeConfiguration();
-		new JCommander(config, args);
-		RegistrationRequest req = RegistrationRequest.build(config);
-		SelfRegisteringRemote remote = new SelfRegisteringRemote(req);
-		remote.deleteAllBrowsers();
-		return remote;
-	}
-
-	public static DesiredCapabilities getSelenium1FirefoxCapability() {
-		DesiredCapabilities firefoxOnSeleniumCapability = new DesiredCapabilities();
-		firefoxOnSeleniumCapability.setBrowserName("*firefox");
-		firefoxOnSeleniumCapability.setCapability(RegistrationRequest.SELENIUM_PROTOCOL, SeleniumProtocol.Selenium);
-		return firefoxOnSeleniumCapability;
-	}
-
-	public static DesiredCapabilities getDefaultBrowserCapability() {
-		String browser = System.getProperty("webdriver.gridtest.browser");
-		if (browser != null) {
-			DesiredCapabilities caps = new DesiredCapabilities();
-			caps.setBrowserName(browser);
-			return caps;
-		}
-		return DesiredCapabilities.htmlUnit();
-	}
-
-	public static Hub getHub() throws Exception {
-		GridHubConfiguration config = new GridHubConfiguration();
-		config.host = "localhost";
-		config.port = PortProber.findFreePort();
-		return getHub(config);
-	}
-
-	public static Hub getHub(GridHubConfiguration config) throws Exception {
-		Hub hub = new Hub(config);
-		hub.start();
-		return hub;
-	}
-
-	public static RemoteWebDriver getRemoteWebDriver(DesiredCapabilities caps, Hub hub) throws MalformedURLException {
-		return new RemoteWebDriver(hub.getWebDriverHubRequestURL(), caps);
+	
+	private static Wait<Object> newWait() {
+		return new FluentWait<Object>("").withTimeout(30, SECONDS);
 	}
 }

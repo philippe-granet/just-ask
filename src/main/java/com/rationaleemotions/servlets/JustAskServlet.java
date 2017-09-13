@@ -1,5 +1,7 @@
 package com.rationaleemotions.servlets;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +14,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
@@ -20,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -40,12 +40,8 @@ import org.openqa.grid.web.servlet.RegistryBasedServlet;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.internal.HttpClientFactory;
-import org.seleniumhq.jetty9.server.Handler;
-import org.seleniumhq.jetty9.server.Server;
-import org.seleniumhq.jetty9.server.ShutdownMonitor;
 import org.seleniumhq.jetty9.servlet.FilterHolder;
 import org.seleniumhq.jetty9.servlet.ServletContextHandler;
-import org.seleniumhq.jetty9.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +68,8 @@ import net.bull.javamelody.Parameter;
 public class JustAskServlet extends RegistryBasedServlet {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+	private static final int TIMEOUT_TEN_SECONDS = (int) SECONDS.toMillis(10);
 
 	private static final String SUCCESS = "success";
 	private static final String SESSION = "session";
@@ -116,7 +114,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		// After the construction is finished, lets wrap up.
 		int status;
 
-		HttpClientFactory httpClientFactory = new HttpClientFactory(1000, 1000);
+		HttpClientFactory httpClientFactory = new HttpClientFactory(TIMEOUT_TEN_SECONDS, TIMEOUT_TEN_SECONDS);
 		try {
 			final int port = getRegistry().getHub().getConfiguration().port;
 			String hubHost = getRegistry().getHub().getConfiguration().host;
@@ -200,32 +198,27 @@ public class JustAskServlet extends RegistryBasedServlet {
 					LOG.warn("Interrupted!", e);
 					Thread.currentThread().interrupt();
 				}
-				if(registry==null){
-					try {
-						Set<LifeCycle> lifeCycles = (Set<LifeCycle>) FieldUtils.readField(ShutdownMonitor.getInstance(),
-								"_lifeCycles", true);
-						for (LifeCycle lifeCycle : lifeCycles) {
-							if (lifeCycle instanceof Server) {
-								Handler handler = ((Server) lifeCycle).getHandler();
-								if (handler instanceof ServletContextHandler) {
-									registry = (Registry) ((ServletContextHandler) handler).getAttribute(Registry.KEY);
-									addJavaMelodyMonitoringFilter((ServletContextHandler) handler);
-								}
-							}
-						}
-					} catch (IllegalAccessException e) {
-						LOG.error("Error retrieving Server : " + e.getMessage(), e);
-					}
+				if (registry == null) {
+					registry = ServerHelper.getHubRegistry();
 				}
-
-				if (registry!=null && callServletToRegister(registry)) {
-					return;
+				if(registry!=null){
+					ServletContextHandler handler = ServerHelper.getServletContextHandler();
+					if (handler != null) {
+						addJavaMelodyMonitoringFilter(handler);
+						if (callServletToRegister(registry)) {
+							return;
+						}
+					}
 				}
 			}
 		}
 
 		private boolean callServletToRegister(Registry registry) {
-			HttpClientFactory httpClientFactory = new HttpClientFactory();
+			if (registry == null) {
+				return false;
+			}
+
+			HttpClientFactory httpClientFactory = new HttpClientFactory(TIMEOUT_TEN_SECONDS, TIMEOUT_TEN_SECONDS);
 			try {
 				GridHubConfiguration gridHubConfiguration = registry.getHub().getConfiguration();
 				final URL enrollServletEndpoint = new URL(String.format("http://%s:%d/grid/admin/%s",

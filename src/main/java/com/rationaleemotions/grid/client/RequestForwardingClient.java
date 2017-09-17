@@ -52,7 +52,7 @@ public class RequestForwardingClient {
 
 	private HttpRequestBase createHttpRequest(HttpServletRequest request) throws IOException {
 		String method = request.getMethod();
-		LOGGER.info("Creating {} request to forward", method);
+		LOGGER.debug("Creating {} request to forward", method);
 		HttpRequestBase httpRequestBase = null;
 		switch (method) {
 		case HttpPost.METHOD_NAME:
@@ -75,7 +75,7 @@ public class RequestForwardingClient {
 			throw new UnsupportedHttpMethodException(method);
 		}
 		URI uri = URI.create(endpoint + SeleniumSessions.trimSessionPath(request.getPathInfo()));
-		LOGGER.info("Trimming session id from path, new path: {}", uri);
+		LOGGER.debug("Trimming session id from path, new path: {}", uri);
 		httpRequestBase.setURI(uri);
 
 		return httpRequestBase;
@@ -84,11 +84,11 @@ public class RequestForwardingClient {
 	private HttpRequestBase createPostRequest(HttpServletRequest request) throws IOException {
 		HttpPost httpPost = new HttpPost();
 		String strContentType = request.getContentType();
-		LOGGER.info("Posting request with mime-type: {}", strContentType);
+		LOGGER.debug("Posting request with mime-type: {}", strContentType);
 		ContentType contentType = ContentType.getByMimeType(strContentType);
 		if (null == contentType)
 			contentType = ContentType.APPLICATION_OCTET_STREAM;
-		LOGGER.info("Posting request with mime-type {} handled as: {}", strContentType, contentType);
+		LOGGER.debug("Posting request with mime-type {} handled as: {}", strContentType, contentType);
 		InputStreamEntity entity = new InputStreamEntity(request.getInputStream(), request.getContentLength(),
 				contentType);
 		httpPost.setEntity(entity);

@@ -1,19 +1,22 @@
 {
+  "host": null,
   "port": 4444,
+  "role": "hub",
+  "maxSession": 5,
   "newSessionWaitTimeout": -1,
+  "capabilityMatcher": "org.openqa.grid.internal.utils.DefaultCapabilityMatcher",
+  "throwOnCapabilityNotPresent": true,
+  "jettyMaxThreads": -1,
+  "cleanUpCycle": 5000,
+  "browserTimeout": 0,
+  "timeout": 1800,
+  "debug": false,
   "servlets": [
     "com.rationaleemotions.servlets.JustAskServlet",
     "com.rationaleemotions.servlets.HubRequestsProxyingServlet"
   ],
   "withoutServlets": [
   ],
-  "capabilityMatcher": "org.openqa.grid.internal.utils.DefaultCapabilityMatcher",
-  "throwOnCapabilityNotPresent": true,
-  "cleanUpCycle": 5000,
-  "role": "hub",
-  "debug": false,
-  "browserTimeout": 0,
-  "timeout": 1800,
   "justAsk": {
     "dockerRestApiUri": "unix:///var/run/docker.sock",
     "localhost": "0.0.0.0",
@@ -88,7 +91,7 @@
               ],
               "env": [
                 "JAVA_OPTS=-Xmx512m",
-                "TZ=${TZ}",
+                "TZ=UTC",
                 "SCREEN_WIDTH=1360",
                 "SCREEN_HEIGHT=1020",
                 "SCREEN_DEPTH=24"

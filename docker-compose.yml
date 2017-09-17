@@ -1,8 +1,10 @@
-version: '2.1'
+version: '2.2'
 services:
   just-ask-hub:
     build: .
+    image: just-ask/hub
     restart: always
+    init: true
     ports:
       - 4444:4444
     volumes:
@@ -11,3 +13,4 @@ services:
     environment:
       - TZ=Europe/Paris
       - GRID_TIMEOUT=1800
+      - JAVA_OPTS=-Dselenium.LOGGER.level=INFO -Djust-ask.LOGGER.level=WARNING

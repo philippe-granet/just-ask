@@ -120,7 +120,7 @@ public class GhostProxy extends DefaultRemoteProxy implements RegistrationListen
 
 	@Override
 	public void beforeRegistration() {
-		LOG.info("Executing before registration...");
+		LOG.debug("Executing before registration...");
 	}
 
 	@Override
@@ -193,7 +193,7 @@ public class GhostProxy extends DefaultRemoteProxy implements RegistrationListen
 			URL url = new URL(key);
 			servers.put(key, server);
 			((ProxiedTestSlot) session.getSlot()).setRemoteURL(url);
-			LOG.info("Forwarding session to :{}", session.getSlot().getRemoteURL());
+			LOG.debug("Forwarding session to :{}", session.getSlot().getRemoteURL());
 
 		} catch (Exception e) {
 			throw new GridException(e.getMessage(), e);

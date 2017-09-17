@@ -83,7 +83,7 @@ public class HubRequestsProxyingServlet extends RegistryBasedServlet {
 
 	private RequestForwardingClient createExtensionClient(String path) {
 		String sessionId = SeleniumSessions.getSessionIdFromPath(path);
-		LOGGER.info("Forwarding request with path: {} for session : {}", path, sessionId);
+		LOGGER.debug("Forwarding request with path: {} for session : {}", path, sessionId);
 		
 		SeleniumSessions sessions = new SeleniumSessions(getRegistry());
 		sessions.refreshTimeout(sessionId);
@@ -91,7 +91,7 @@ public class HubRequestsProxyingServlet extends RegistryBasedServlet {
 		URL remoteHost = sessions.getRemoteHostForSession(sessionId);
 		String host = remoteHost.getHost();
 		int port = remoteHost.getPort();
-		LOGGER.info("Remote host retrieved: {}:{}", host, port);
+		LOGGER.debug("Remote host retrieved: {}:{}", host, port);
 
 		return requestForwardingClientProvider.provide(host, port);
 	}

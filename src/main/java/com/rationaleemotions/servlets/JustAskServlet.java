@@ -12,6 +12,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
@@ -76,7 +77,18 @@ public class JustAskServlet extends RegistryBasedServlet {
 	@Override
 	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
+		initLogger();
 		addProxy();
+	}
+
+	private void initLogger() {
+		Level logLevel = getRegistry().getHub().getConfiguration().debug ? Level.FINE
+				: com.rationaleemotions.config.LoggingOptions.getDefaultLogLevel();
+		if (logLevel == null) {
+			logLevel = Level.INFO;
+		}
+		java.util.logging.Logger.getLogger("com.rationaleemotions").setLevel(logLevel);
+		java.util.logging.Logger.getLogger("com.spotify.docker.client").setLevel(logLevel);
 	}
 
 	private void addProxy() {
@@ -170,7 +182,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 				if (registry == null) {
 					registry = ServerHelper.getHubRegistry();
 				}
-				if(registry!=null){
+				if (registry != null) {
 					ServletContextHandler handler = ServerHelper.getServletContextHandler();
 					if (handler != null) {
 						addJavaMelodyMonitoringFilter(handler);

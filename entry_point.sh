@@ -4,7 +4,7 @@ echo "========================================================"
 echo "Timezone Configuration"
 echo "========================================================"
 echo "${TZ}" | sudo tee /etc/timezone
-sudo dpkg-reconfigure --frontend noninteractive tzdata
+sudo sh -c 'dpkg-reconfigure --frontend noninteractive tzdata 2>&1'
 date
 echo ""
 
@@ -38,7 +38,7 @@ function shutdown {
 echo "========================================================"
 echo "java version"
 echo "========================================================"
-java -version 
+java -version 2>&1
 echo ""
 
 echo "========================================================"

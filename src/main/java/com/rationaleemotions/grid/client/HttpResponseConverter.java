@@ -29,7 +29,7 @@ public final class HttpResponseConverter {
 	public static void copy(HttpResponse source, HttpServletResponse target) {
 		int statusCode = source.getStatusLine().getStatusCode();
 		target.setStatus(statusCode);
-		LOGGER.info("Response from extension returned {} status code", statusCode);
+		LOGGER.debug("Response from extension returned {} status code", statusCode);
 
 		HttpEntity entity = source.getEntity();
 
@@ -40,15 +40,15 @@ public final class HttpResponseConverter {
 						"Response from extension returned null content type - it will not be copied to target servlet response.");
 			} else {
 				target.setContentType(contentType.getValue());
-				LOGGER.info("Response from extension returned {} content type", contentType.getValue());
+				LOGGER.debug("Response from extension returned {} content type", contentType.getValue());
 			}
 		}
 
 		long contentLength = entity.getContentLength();
 		target.setContentLength(Ints.checkedCast(contentLength));
-		LOGGER.info("Response from extension has {} content length", contentLength);
+		LOGGER.debug("Response from extension has {} content length", contentLength);
 
-		LOGGER.info("Copying body content to original servlet response");
+		LOGGER.debug("Copying body content to original servlet response");
 		try (InputStream content = entity.getContent(); OutputStream response = target.getOutputStream()) {
 			IOUtils.copy(content, response);
 		} catch (IOException e) {

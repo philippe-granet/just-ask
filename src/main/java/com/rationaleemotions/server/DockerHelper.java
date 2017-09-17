@@ -5,6 +5,8 @@ import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 
 import java.lang.invoke.MethodHandles;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +64,9 @@ public final class DockerHelper {
 		LOG.debug("Killing and removing the container : [{}].", id);
 		try {
 			getClient().killContainer(id);
+		} catch (ContainerNotFoundException e) {
+			LOG.info("Fail to kill container {}, already removed!", id);
+
 		} catch (DockerException | InterruptedException e) {
 			// Fail if containers already stopped
 			LOG.error("Fail to kill container {}", id, e);
@@ -87,27 +92,40 @@ public final class DockerHelper {
 			LOG.info("Fail to remove container {}, already removed!", id);
 
 		} catch (Exception e) {
-			LOG.warn("Fail to remove container {} : {}" , id, e.getMessage(), e);
+			LOG.warn("Fail to remove container {} : {}", id, e.getMessage(), e);
 		}
 	}
 
-	public static void removeContainersWithLabel(String label) {
+	public static void removeContainersWithLabel(String label, Duration createdSince) {
 		List<Container> containers = null;
 		try {
 			containers = getClient().listContainers(DockerClient.ListContainersParam.withLabel(label));
 		} catch (DockerException | InterruptedException e) {
 			LOG.warn("Fail to retrieve list of containers", e.getMessage(), e);
 		}
-		for(Container container:containers){
+		for (Container container : containers) {
 			try {
-				LOG.info("Removing old container {} ..." , container.id());
-				killAndRemoveContainer(container.id());
+				boolean removeContainer = createdSince == null ? true : false;
+
+				if (createdSince != null) {
+					com.spotify.docker.client.messages.ContainerInfo containerInfo = getClient()
+							.inspectContainer(container.id());
+					if (containerInfo.created().toInstant().isBefore(Instant.now().minus(createdSince))) {
+						removeContainer = true;
+					}
+				}
+				if (removeContainer) {
+					LOG.info("Removing old container {} ...", container.id());
+					killAndRemoveContainer(container.id());
+				} else {
+					LOG.info("keep container {}...", container.id());
+				}
 			} catch (DockerException | InterruptedException e) {
-				LOG.warn("Fail to remove container {} : {}" , container.id(), e.getMessage(), e);
+				LOG.warn("Fail to remove container {} : {}", container.id(), e.getMessage(), e);
 			}
 		}
 	}
-	
+
 	/**
 	 * @param A
 	 *            {@link ContainerAttributes} object
@@ -196,8 +214,7 @@ public final class DockerHelper {
 
 		final ContainerConfig containerConfig = ContainerConfig.builder().hostConfig(hostConfig)
 				.image(containerAttributes.getImage()).exposedPorts(new HashSet<String>(exposedPorts))
-				.labels(containerAttributes.getLabels())
-				.env(containerAttributes.getEnvs()).build();
+				.labels(containerAttributes.getLabels()).env(containerAttributes.getEnvs()).build();
 		return getClient().createContainer(containerConfig, containerName);
 	}
 

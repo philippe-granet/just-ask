@@ -1,20 +1,21 @@
 #!/bin/bash
 
-#========================
-# Timezone Configuration
-#========================
-echo "setting timezone"
+echo "========================================================"
+echo "Timezone Configuration"
+echo "========================================================"
 echo "${TZ}" | sudo tee /etc/timezone
 sudo dpkg-reconfigure --frontend noninteractive tzdata
+date
+echo ""
 
-#========================
-# Fix permissions
-#========================
+echo "========================================================"
+echo "Fix permissions"
+echo "========================================================"
 sudo chown -R seluser:seluser /opt/selenium/
 
-#========================
-# Selenium Configuration
-#========================
+echo "========================================================"
+echo "Selenium Configuration"
+echo "========================================================"
 ROOT=/opt/selenium
 CONF=$ROOT/config.json
 
@@ -34,7 +35,15 @@ function shutdown {
     echo "shutdown complete"
 }
 
+echo "========================================================"
+echo "java version"
+echo "========================================================"
 java -version 
+echo ""
+
+echo "========================================================"
+echo "Start Hub ..."
+echo "========================================================"
 java -server \
   -XX:+UnlockExperimentalVMOptions \
   -XX:+UseCGroupMemoryLimitForHeap \

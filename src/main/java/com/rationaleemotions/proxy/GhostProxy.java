@@ -2,9 +2,11 @@ package com.rationaleemotions.proxy;
 
 import static org.openqa.grid.web.servlet.handler.RequestType.START_SESSION;
 import static org.openqa.grid.web.servlet.handler.RequestType.STOP_SESSION;
+import static org.openqa.selenium.remote.ErrorCodes.SUCCESS;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,13 +25,14 @@ import org.openqa.grid.internal.listeners.RegistrationListener;
 import org.openqa.grid.selenium.proxy.DefaultRemoteProxy;
 import org.openqa.grid.web.servlet.handler.RequestType;
 import org.openqa.grid.web.servlet.handler.SeleniumBasedRequest;
+import org.openqa.selenium.remote.BeanToJsonConverter;
 import org.openqa.selenium.remote.CapabilityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.MapMaker;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.rationaleemotions.config.ConfigReader;
 import com.rationaleemotions.internal.ProxiedTestSlot;
 import com.rationaleemotions.server.DockerHelper;
@@ -44,6 +47,12 @@ public class GhostProxy extends DefaultRemoteProxy implements RegistrationListen
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	private Map<String, SpawnedServer> servers = new MapMaker().initialCapacity(500).makeMap();
+
+	private Thread cleaningThread = null;
+
+	private boolean poll = true;
+
+	private volatile int pollingInterval = 10 * 60 * 1000;
 
 	public GhostProxy(final RegistrationRequest request, final Registry registry) {
 		super(request, registry);
@@ -66,12 +75,12 @@ public class GhostProxy extends DefaultRemoteProxy implements RegistrationListen
 		LOG.debug("Trying to create a new session on node {}", this);
 
 		Map<String, Object> requestedCapabilityWithVersion = new HashMap<>(requestedCapability);
-		
-		//if version is empty, use default version
-		String version=(String) requestedCapability.get(CapabilityType.BROWSER_VERSION);
-		if(StringUtils.isBlank(version)){
-			String browser=requestedCapability.get(CapabilityType.BROWSER_NAME).toString();
-			version=ConfigReader.getInstance().getBrowserDefaultVersion(browser).getVersion();
+
+		// if version is empty, use default version
+		String version = (String) requestedCapability.get(CapabilityType.BROWSER_VERSION);
+		if (StringUtils.isBlank(version)) {
+			String browser = requestedCapability.get(CapabilityType.BROWSER_NAME).toString();
+			version = ConfigReader.getInstance().getBrowserDefaultVersion(browser).getVersion();
 			requestedCapabilityWithVersion.put(CapabilityType.BROWSER_VERSION, version);
 		}
 		// any slot left for the given app ?
@@ -85,11 +94,35 @@ public class GhostProxy extends DefaultRemoteProxy implements RegistrationListen
 	}
 
 	@Override
-	public void beforeRegistration() {
-		LOG.info("Cleanup old containers before registration");
-		DockerHelper.removeContainersWithLabel("just-ask-node");
+	public void startPolling() {
+		super.startPolling();
+		Runnable task = () -> {
+			while (poll) {
+				try {
+					Thread.sleep(pollingInterval);
+					DockerHelper.removeContainersWithLabel("just-ask-node", Duration.ofHours(1));
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		};
+		String taskName = GhostProxy.class.getSimpleName() + " CleanUpThread for " + getId();
+		cleaningThread = new Thread(task, taskName);
+		cleaningThread.start();
 	}
-	
+
+	@Override
+	public void stopPolling() {
+		super.stopPolling();
+		poll = false;
+		cleaningThread.interrupt();
+	}
+
+	@Override
+	public void beforeRegistration() {
+		LOG.info("Executing before registration...");
+	}
+
 	@Override
 	public void beforeCommand(final TestSession session, final HttpServletRequest request,
 			final HttpServletResponse response) {
@@ -124,8 +157,23 @@ public class GhostProxy extends DefaultRemoteProxy implements RegistrationListen
 
 	@Override
 	public JsonObject getStatus() {
-		return new JsonParser().parse("{\"status\":0,\"value\":{\"build\":{\"version\":\""+getClass().getPackage().getImplementationVersion()+"&nbsp;&#128123;\"}}}")
-				.getAsJsonObject();
+		ImmutableMap.Builder<String, Object> value = ImmutableMap.builder();
+
+		// W3C spec
+		value.put("ready", true);
+		value.put("message", "Node is running");
+
+		value.put("build", ImmutableMap.of("revision", "unknown", "time", "unknown", "version",
+				getClass().getPackage().getImplementationVersion() + "&nbsp;&#128123;"));
+
+		value.put("os", ImmutableMap.of("arch", System.getProperty("os.arch"), "name", System.getProperty("os.name"),
+				"version", System.getProperty("os.version")));
+
+		value.put("java", ImmutableMap.of("version", System.getProperty("java.version")));
+
+		Map<String, Object> payloadObj = ImmutableMap.of("status", SUCCESS, "value", value.build());
+
+		return new BeanToJsonConverter().convertObject(payloadObj).getAsJsonObject();
 	}
 
 	private RequestType identifyRequestType(final HttpServletRequest request) {

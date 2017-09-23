@@ -47,6 +47,12 @@ COPY --from=BUILDER /usr/src/app/target/just-ask-jar-with-dependencies.jar /opt/
 
 EXPOSE 4444
 
+ENV SCREEN_WIDTH 1360
+ENV SCREEN_HEIGHT 1020
+ENV SCREEN_DEPTH 24
+ENV NODE_DEBUG false
+ENV NODE_MEMORY 256m
+
 # As integer, maps to "maxSession"
 ENV GRID_MAX_SESSION 5
 # In milliseconds, maps to "newSessionWaitTimeout"

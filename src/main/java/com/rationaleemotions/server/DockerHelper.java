@@ -210,7 +210,7 @@ public final class DockerHelper {
 
 		final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings)
 				.privileged(containerAttributes.isPrivileged()).binds(containerAttributes.getVolumes()).autoRemove(true)
-				.shmSize(containerAttributes.getShmSize()).build();
+				.shmSize(containerAttributes.getShmSize()).memory(containerAttributes.getMemory()).build();
 
 		final ContainerConfig containerConfig = ContainerConfig.builder().hostConfig(hostConfig)
 				.image(containerAttributes.getImage()).exposedPorts(new HashSet<String>(exposedPorts))

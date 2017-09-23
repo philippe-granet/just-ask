@@ -1,8 +1,8 @@
 version: '2.2'
 services:
   just-ask-hub:
-    build: .
     image: just-ask/hub
+    container_name: just-ask-hub
     restart: always
     init: true
     ports:
@@ -11,6 +11,26 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
     mem_limit: 256m
     environment:
-      - TZ=Europe/Paris
-      - GRID_TIMEOUT=1800
-      - JAVA_OPTS=-Dselenium.LOGGER.level=INFO -Djust-ask.LOGGER.level=WARNING
+      TZ: Europe/Paris
+      GRID_TIMEOUT: 1800
+      GRID_JAVA_OPTS: |
+        -server
+        -Dselenium.LOGGER.level=INFO
+        -Djust-ask.LOGGER.level=WARNING
+        -XX:+UnlockExperimentalVMOptions
+        -XX:+UseCGroupMemoryLimitForHeap
+        -XX:MaxRAMFraction=1
+        -XX:+UseG1GC
+        -XX:+UseStringDeduplication
+        -XshowSettings:vm
+        -Dsun.net.inetaddr.ttl=60
+      NODE_JAVA_OPTS: |
+        -server
+        -Dselenium.LOGGER.level=INFO
+        -XX:+UnlockExperimentalVMOptions
+        -XX:+UseCGroupMemoryLimitForHeap
+        -XX:MaxRAMFraction=1
+        -XX:+UseG1GC
+        -XX:+UseStringDeduplication
+        -XshowSettings:vm
+        -Dsun.net.inetaddr.ttl=60

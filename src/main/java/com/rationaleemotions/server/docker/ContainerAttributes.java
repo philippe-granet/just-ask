@@ -15,7 +15,9 @@ public class ContainerAttributes {
     private List<String> volumes;
     private List<String> envs;
     private Map<String,String> labels;
-	private Long shmSize;
+    private Long shmSize;
+    private Long memory;
+	
 
 	public String getImage() {
         return this.image;
@@ -103,5 +105,13 @@ public class ContainerAttributes {
 
 	public void setLabels(Map<String,String> labels) {
 		this.labels = labels;
+	}
+
+	public Long getMemory() {
+		return memory;
+	}
+
+	public void setMemory(Long memory) {
+		this.memory = memory;
 	}
 }

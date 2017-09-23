@@ -83,7 +83,8 @@ public class DockerBasedSeleniumServer extends AbstractSeleniumServer {
 		List<String> envs = getEnvs(requestedCapabilities, browserVersion);
 		Map<String, String> labels = getLabels(browser, version);
 
-		Long shmSize = getShmSize(browserVersion.getTargetAttribute("shmSize"));
+		Long shmSize = getMemorySize(browserVersion.getTargetAttribute("shmSize"));
+		Long memory = getMemorySize(browserVersion.getTargetAttribute("memory"));
 
 		ContainerAttributes containerAttributes = new ContainerAttributes();
 		containerAttributes.setImage(image);
@@ -94,6 +95,7 @@ public class DockerBasedSeleniumServer extends AbstractSeleniumServer {
 		containerAttributes.setLabels(labels);
 		containerAttributes.setPrivileged(false);
 		containerAttributes.setShmSize(shmSize);
+		containerAttributes.setMemory(memory);
 		return containerAttributes;
 	}
 
@@ -134,28 +136,28 @@ public class DockerBasedSeleniumServer extends AbstractSeleniumServer {
 		return envs;
 	}
 
-	protected Long getShmSize(final String shmSize) {
-		if (shmSize == null) {
+	protected Long getMemorySize(final String size) {
+		if (size == null) {
 			return null;
 		}
 		try {
-			if (shmSize.endsWith("b")) {
-				return Long.parseLong(shmSize.replace("b", ""));
+			if (size.endsWith("b")) {
+				return Long.parseLong(size.replace("b", ""));
 
-			} else if (shmSize.endsWith("k")) {
-				return Long.parseLong(shmSize.replace("k", "")) * 1024L;
+			} else if (size.endsWith("k")) {
+				return Long.parseLong(size.replace("k", "")) * 1024L;
 
-			} else if (shmSize.endsWith("m")) {
-				return Long.parseLong(shmSize.replace("m", "")) * 1024L * 1024L;
+			} else if (size.endsWith("m")) {
+				return Long.parseLong(size.replace("m", "")) * 1024L * 1024L;
 
-			} else if (shmSize.endsWith("g")) {
-				return Long.parseLong(shmSize.replace("g", "")) * 1024L * 1024L * 1024L;
+			} else if (size.endsWith("g")) {
+				return Long.parseLong(size.replace("g", "")) * 1024L * 1024L * 1024L;
 
 			} else {
-				return Long.parseLong(shmSize) * 1024L * 1024L * 1024L;
+				return Long.parseLong(size) * 1024L * 1024L * 1024L;
 			}
 		} catch (NumberFormatException e) {
-			LOG.error("invalid shmSize - {}", e.getMessage());
+			LOG.error("invalid size - {}", e.getMessage());
 		}
 		return null;
 	}

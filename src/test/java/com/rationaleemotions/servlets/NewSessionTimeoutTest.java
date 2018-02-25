@@ -6,6 +6,7 @@ import java.net.URL;
 
 import javax.servlet.ServletException;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;

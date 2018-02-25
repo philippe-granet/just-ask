@@ -13,7 +13,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<javamelodyVersion>1.69.0</javamelodyVersion>
+		<javamelodyVersion>1.71.0</javamelodyVersion>
 	</properties>
 
 	<licenses>
@@ -48,13 +48,13 @@
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-server</artifactId>
-			<version>3.6.0</version>
+			<version>3.9.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.spotify</groupId>
 			<artifactId>docker-client</artifactId>
-			<version>8.9.0</version>
+			<version>8.11.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>ch.qos.logback</groupId>

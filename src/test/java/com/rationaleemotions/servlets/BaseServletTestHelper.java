@@ -16,14 +16,13 @@ import org.openqa.selenium.remote.server.log.TerseFormatter;
 
 public class BaseServletTestHelper {
 	protected static Hub hub;
-	
+
 	public static void setUp(String configFile) throws Exception {
 		Integer hubPort = PortProber.findFreePort();
-		String[] hubArgs = { "-role", GridRole.HUB.toString(), "-port", hubPort.toString(), "-hubConfig",
-				configFile };
+		String[] hubArgs = { "-role", GridRole.HUB.toString(), "-port", hubPort.toString(), "-hubConfig", configFile };
 		GridLauncherV3.main(hubArgs);
 		GridTestHelper.waitForGrid();
-		
+
 		Level logLevel = Level.INFO;
 		Logger.getLogger("").setLevel(logLevel);
 
@@ -39,11 +38,30 @@ public class BaseServletTestHelper {
 		Logger.getLogger("org.seleniumhq.jetty9").setLevel(Level.WARNING);
 
 		hub = ServerHelper.getHubRegistry().getHub();
-		RegistryTestHelper.waitForNodes(ServerHelper.getHubRegistry().getHub().getRegistry());
+		RegistryTestHelper.waitForNodes(hub.getRegistry());
 	}
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		ServerHelper.getHubRegistry().getHub().stop();
+		try {
+			ServerHelper.getHubRegistry().getHub().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getHubRegistry().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getServer().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getServer().destroy();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 }

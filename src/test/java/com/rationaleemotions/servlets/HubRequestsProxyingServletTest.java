@@ -39,7 +39,7 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.GridRegistry;
 import org.openqa.grid.internal.TestSession;
 import org.seleniumhq.jetty9.server.AbstractNetworkConnector;
 import org.seleniumhq.jetty9.server.Server;
@@ -59,7 +59,7 @@ public class HubRequestsProxyingServletTest {
     @Mock
     private Function mockedFunction;
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private Registry mockedRegistry;
+    private GridRegistry mockedRegistry;
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private TestSession mockedSession;
 

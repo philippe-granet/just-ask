@@ -27,9 +27,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.openqa.grid.common.RegistrationRequest;
+import org.openqa.grid.common.SeleniumProtocol;
 import org.openqa.grid.common.exception.GridConfigurationException;
 import org.openqa.grid.common.exception.GridException;
-import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.GridRegistry;
 import org.openqa.grid.internal.utils.configuration.GridHubConfiguration;
 import org.openqa.grid.web.servlet.RegistryBasedServlet;
 import org.openqa.selenium.Platform;
@@ -66,7 +67,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 		new EnrollServletPoller().start();
 	}
 
-	public JustAskServlet(final Registry registry) {
+	public JustAskServlet(final GridRegistry registry) {
 		super(registry);
 	}
 
@@ -134,12 +135,12 @@ public class JustAskServlet extends RegistryBasedServlet {
 					jsonObject.addProperty(CapabilityType.BROWSER_NAME, browserName);
 					jsonObject.addProperty(CapabilityType.VERSION, browserVersion.getVersion());
 					jsonObject.addProperty(RegistrationRequest.MAX_INSTANCES, maxSession);
-
+					jsonObject.addProperty(RegistrationRequest.SELENIUM_PROTOCOL, SeleniumProtocol.WebDriver.toString());
 					Class<?> clazz = Class.forName(browserVersion.getImplementation());
 					if (clazz.isAssignableFrom(DockerBasedSeleniumServer.class)) {
-						jsonObject.addProperty(CapabilityType.PLATFORM, Platform.LINUX.toString());
+						jsonObject.addProperty(CapabilityType.PLATFORM_NAME, Platform.LINUX.toString());
 					} else {
-						jsonObject.addProperty(CapabilityType.PLATFORM, Platform.ANY.toString());
+						jsonObject.addProperty(CapabilityType.PLATFORM_NAME, Platform.ANY.toString());
 					}
 					capsArray.add(jsonObject);
 				}
@@ -151,7 +152,6 @@ public class JustAskServlet extends RegistryBasedServlet {
 			configuration.addProperty("maxSession", maxSession);
 			configuration.addProperty("browserTimeout", gridHubConfiguration.browserTimeout);
 			configuration.addProperty("timeout", gridHubConfiguration.timeout);
-			configuration.addProperty("enablePassThrough", gridHubConfiguration.enablePassThrough);
 			configuration.addProperty("hub", String.format("http://%s:%d", host, port));
 			result = ondemand.toString();
 			return new StringEntity(result);
@@ -170,7 +170,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 
 		@Override
 		public void run() {
-			Registry registry = null;
+			GridRegistry registry = null;
 
 			while (true) {
 				try {
@@ -194,7 +194,7 @@ public class JustAskServlet extends RegistryBasedServlet {
 			}
 		}
 
-		private boolean callServletToRegister(Registry registry) {
+		private boolean callServletToRegister(GridRegistry registry) {
 			if (registry == null) {
 				return false;
 			}

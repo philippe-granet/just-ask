@@ -9,6 +9,7 @@ import org.openqa.grid.selenium.GridLauncherV3;
 import org.openqa.selenium.net.PortProber;
 
 import com.rationaleemotions.config.ConfigReader;
+import com.rationaleemotions.servlets.ServerHelper;
 
 public class ConfigReaderTest {
 
@@ -27,6 +28,26 @@ public class ConfigReaderTest {
 		ConfigReader config = ConfigReader.getInstance();
 
 		Assert.assertTrue(config.getBrowsers().size() > 0);
+		try {
+			ServerHelper.getHubRegistry().getHub().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getHubRegistry().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getServer().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getServer().destroy();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 
 	@Test
@@ -40,5 +61,25 @@ public class ConfigReaderTest {
 		ConfigReader config = ConfigReader.getInstance();
 
 		Assert.assertTrue(config.getBrowsers().size() > 0);
+		try {
+			ServerHelper.getHubRegistry().getHub().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getHubRegistry().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getServer().stop();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		try {
+			ServerHelper.getServer().destroy();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 }

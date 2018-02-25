@@ -21,67 +21,16 @@
     "dockerRestApiUri": "unix:///var/run/docker.sock",
     "localhost": "0.0.0.0",
     "maxSession": 5,
-    "browsers": [
+	"browsers": [
       {
         "browser": "chrome",
-        "defaultVersion": "61.0.3163.100",
+        "defaultVersion": "64.0.3282.140",
         "versions": [
           {
-            "version": "61.0.3163.100",
+            "version": "64.0.3282.140",
             "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
             "target": {
-              "image": "selenium/standalone-chrome:3.6.0-americium",
-              "port": "4444",
-              "volumes": [
-                "/dev/shm:/dev/shm"
-              ],
-              "env": [
-                "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
-                "SCREEN_WIDTH=1360",
-                "SCREEN_HEIGHT=1020",
-                "SCREEN_DEPTH=24"
-              ]
-            }
-          },{
-            "version": "60.0.3112.113",
-            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-            "target": {
-              "image": "selenium/standalone-chrome:3.5.2-antimony",
-              "port": "4444",
-              "volumes": [
-                "/dev/shm:/dev/shm"
-              ],
-              "env": [
-                "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
-                "SCREEN_WIDTH=1360",
-                "SCREEN_HEIGHT=1020",
-                "SCREEN_DEPTH=24"
-              ]
-            }
-          },{
-            "version": "59.0.3071.115",
-            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-            "target": {
-              "image": "selenium/standalone-chrome:3.4.0-einsteinium",
-              "port": "4444",
-              "volumes": [
-                "/dev/shm:/dev/shm"
-              ],
-              "env": [
-                "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
-                "SCREEN_WIDTH=1360",
-                "SCREEN_HEIGHT=1020",
-                "SCREEN_DEPTH=24"
-              ]
-            }
-          },{
-            "version": "58.0.3029.81",
-            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-            "target": {
-              "image": "selenium/standalone-chrome:3.4.0-chromium",
+              "image": "selenium/standalone-chrome:3.9.1-actinium",
               "port": "4444",
               "volumes": [
                 "/dev/shm:/dev/shm"
@@ -99,85 +48,13 @@
       },
       {
         "browser": "firefox",
-        "defaultVersion": "56.0",
+        "defaultVersion": "58.0.1",
         "versions": [
           {
-            "version": "56.0",
+            "version": "58.0.1",
             "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
             "target": {
-              "image": "selenium/standalone-firefox:3.6.0-americium",
-              "port": "4444",
-              "volumes": [
-                "/dev/shm:/dev/shm"
-              ],
-              "shmSize": "2g",
-              "env": [
-                "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
-                "SCREEN_WIDTH=1360",
-                "SCREEN_HEIGHT=1020",
-                "SCREEN_DEPTH=24"
-              ]
-            }
-          },{
-            "version": "55.0.3",
-            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-            "target": {
-              "image": "selenium/standalone-firefox:3.5.3-astatine",
-              "port": "4444",
-              "volumes": [
-                "/dev/shm:/dev/shm"
-              ],
-              "shmSize": "2g",
-              "env": [
-                "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
-                "SCREEN_WIDTH=1360",
-                "SCREEN_HEIGHT=1020",
-                "SCREEN_DEPTH=24"
-              ]
-            }
-          },{
-            "version": "54.0",
-            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-            "target": {
-              "image": "selenium/standalone-firefox:3.4.0-einsteinium",
-              "port": "4444",
-              "volumes": [
-                "/dev/shm:/dev/shm"
-              ],
-              "shmSize": "2g",
-              "env": [
-                "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
-                "SCREEN_WIDTH=1360",
-                "SCREEN_HEIGHT=1020",
-                "SCREEN_DEPTH=24"
-              ]
-            }
-          },{
-            "version": "53.0",
-            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-            "target": {
-              "image": "selenium/standalone-firefox:3.4.0-dysprosium",
-              "port": "4444",
-              "volumes": [
-                "/dev/shm:/dev/shm"
-              ],
-              "shmSize": "2g",
-              "env": [
-                "JAVA_OPTS=-Xmx512m",
-                "TZ=UTC",
-                "SCREEN_WIDTH=1360",
-                "SCREEN_HEIGHT=1020",
-                "SCREEN_DEPTH=24"
-              ]
-            }
-          },{
-            "version": "52.0.2",
-            "implementation": "com.rationaleemotions.server.DockerBasedSeleniumServer",
-            "target": {
-              "image": "selenium/standalone-firefox:3.4.0-actinium",
+              "image": "selenium/standalone-firefox:3.9.1-actinium",
               "port": "4444",
               "volumes": [
                 "/dev/shm:/dev/shm"

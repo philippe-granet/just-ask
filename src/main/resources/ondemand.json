@@ -14,6 +14,7 @@
     "debug": false,
     "servlets": [],
     "withoutServlets": [],
+    "enablePlatformVerification": false,
     "custom": {}
   }
 }

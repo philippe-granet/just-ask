@@ -129,10 +129,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 		DesiredCapabilities capabillities = DesiredCapabilities.chrome();
 		WebDriver driver = null;
 		Map<String, String> versionsUserAgent = new HashMap<>();
-		versionsUserAgent.put("58.0.3029.81", "58.0.3029.81");
-		versionsUserAgent.put("59.0.3071.115", "59.0.3071.115");
-		versionsUserAgent.put("60.0.3112.113", "60.0.3112.113");
-		versionsUserAgent.put("61.0.3163.100", "61.0.3163.100");
+		versionsUserAgent.put("64.0.3282.140", "64.0.3282.140");
 		for (Map.Entry<String, String> versionUserAgent : versionsUserAgent.entrySet()) {
 			try {
 				capabillities.setCapability(CapabilityType.BROWSER_VERSION, versionUserAgent.getKey());
@@ -159,11 +156,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 		DesiredCapabilities capabillities = DesiredCapabilities.firefox();
 		WebDriver driver = null;
 		Map<String, String> versionsUserAgent = new HashMap<>();
-		versionsUserAgent.put("52.0.2", "52.0");
-		versionsUserAgent.put("53.0", "53.0");
-		versionsUserAgent.put("54.0", "54.0");
-		versionsUserAgent.put("55.0.3", "55.0");
-		versionsUserAgent.put("56.0", "56.0");
+		versionsUserAgent.put("58.0.1", "58.0");
 		for (Map.Entry<String, String> versionUserAgent : versionsUserAgent.entrySet()) {
 			try {
 				capabillities.setCapability(CapabilityType.BROWSER_VERSION, versionUserAgent.getKey());
@@ -226,7 +219,7 @@ public class JustAskServletTest extends BaseServletTestHelper {
 		capabillities.setCapability("DOCKER_ENV_SCREEN_HEIGHT", "480");
 		capabillities.setCapability("DOCKER_ENV_SCREEN_DEPTH", "24");
 		capabillities.setCapability("DOCKER_ENV_TZ", "Europe/Paris");
-		capabillities.setCapability(CapabilityType.BROWSER_VERSION, "54.0");
+		capabillities.setCapability(CapabilityType.BROWSER_VERSION, "58.0.1");
 
 		WebDriver driver = null;
 		try {

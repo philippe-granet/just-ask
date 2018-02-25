@@ -1,6 +1,6 @@
 package com.rationaleemotions.grid.session;
 
-import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.GridRegistry;
 import org.openqa.grid.internal.TestSession;
 
 import java.net.URL;
@@ -15,9 +15,9 @@ public class SeleniumSessions {
 
     private static final Pattern SESSION_ID_PATTERN = Pattern.compile("/session/([^/]+).*");
 
-    private final Registry registry;
+    private final GridRegistry registry;
 
-    public SeleniumSessions(Registry registry) {
+    public SeleniumSessions(GridRegistry registry) {
         this.registry = registry;
     }
 

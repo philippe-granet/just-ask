@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.openqa.grid.internal.ExternalSessionKey;
-import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.GridRegistry;
 import org.openqa.grid.internal.TestSession;
 
 import com.google.common.collect.Sets;
@@ -27,7 +27,7 @@ import com.rationaleemotions.grid.session.SeleniumSessions;
 public class SeleniumSessionsTest {
 
     @Mock
-    private Registry registry;
+    private GridRegistry registry;
     @Mock
     private ExternalSessionKey externalSessionKey;
 

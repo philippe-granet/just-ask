@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.rationaleemotions.server.ISeleniumServer.ServerException;
 import com.rationaleemotions.server.docker.ContainerAttributes;
+import com.spotify.docker.client.AnsiProgressHandler;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
@@ -271,7 +272,7 @@ public final class DockerHelper {
 
 		LOG.info("Start downloading of image {}", dockerImage);
 
-		ProgressHandler handler = new LoggingBuildHandler();
+		ProgressHandler handler = new AnsiProgressHandler();
 		List<Image> foundImages = getClient().listImages(DockerClient.ListImagesParam.byName(dockerImage));
 		if (!foundImages.isEmpty()) {
 			LOG.info("Skipping download for Image [{}] because it's already available.", dockerImage);

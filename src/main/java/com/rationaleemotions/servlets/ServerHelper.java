@@ -4,7 +4,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Set;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.GridRegistry;
 import org.seleniumhq.jetty9.server.Handler;
 import org.seleniumhq.jetty9.server.Server;
 import org.seleniumhq.jetty9.server.ShutdownMonitor;
@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 
 public class ServerHelper {
 
-	private static Server server;
-	private static Registry hubRegistry;
 	private static ServletContextHandler servletContextHandler;
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -25,16 +23,12 @@ public class ServerHelper {
 	}
 
 	public static Server getServer() {
-		if (server != null) {
-			return server;
-		}
 		Set<LifeCycle> lifeCycles;
 		try {
 			lifeCycles = (Set<LifeCycle>) FieldUtils.readField(ShutdownMonitor.getInstance(), "_lifeCycles", true);
 			for (LifeCycle lifeCycle : lifeCycles) {
 				if (lifeCycle instanceof Server) {
-					server = (Server) lifeCycle;
-					break;
+					return (Server) lifeCycle;
 				}
 			}
 		} catch (IllegalAccessException e) {
@@ -43,30 +37,21 @@ public class ServerHelper {
 		return null;
 	}
 	public static ServletContextHandler getServletContextHandler() {
-		if (servletContextHandler != null) {
-			return servletContextHandler;
-		}
 		if(getServer()==null){
 			return null;
 		}
-		Handler handler = server.getHandler();
+		Handler handler = getServer().getHandler();
 		if (handler instanceof ServletContextHandler) {
 			servletContextHandler=(ServletContextHandler) handler;
 		}
 		return servletContextHandler;
 	}
 	
-	public static Registry getHubRegistry() {
-		if (hubRegistry != null) {
-			return hubRegistry;
-		}
-		if(getServer()==null){
-			return null;
-		}
+	public static GridRegistry getHubRegistry() {
 		ServletContextHandler handler = getServletContextHandler();
 		if(handler!=null){
-			hubRegistry = (Registry) handler.getAttribute(Registry.KEY);
+			return (GridRegistry) handler.getAttribute(GridRegistry.KEY);
 		}
-		return hubRegistry;
+		return null;
 	}
 }

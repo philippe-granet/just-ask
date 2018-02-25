@@ -17,7 +17,7 @@ import org.apache.commons.lang.StringUtils;
 import org.openqa.grid.common.RegistrationRequest;
 import org.openqa.grid.common.SeleniumProtocol;
 import org.openqa.grid.common.exception.GridException;
-import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.GridRegistry;
 import org.openqa.grid.internal.SessionTerminationReason;
 import org.openqa.grid.internal.TestSession;
 import org.openqa.grid.internal.TestSlot;
@@ -27,6 +27,7 @@ import org.openqa.grid.web.servlet.handler.RequestType;
 import org.openqa.grid.web.servlet.handler.SeleniumBasedRequest;
 import org.openqa.selenium.remote.BeanToJsonConverter;
 import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.server.jmx.ManagedService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,7 @@ import com.rationaleemotions.server.SpawnedServer;
  * spinning off a server and then routing the session traffic to the spawned
  * server.
  */
+@ManagedService(description = "Selenium Grid Hub TestSlot")
 public class GhostProxy extends DefaultRemoteProxy implements RegistrationListener {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -54,7 +56,7 @@ public class GhostProxy extends DefaultRemoteProxy implements RegistrationListen
 
 	private volatile int pollingInterval = 10 * 60 * 1000;
 
-	public GhostProxy(final RegistrationRequest request, final Registry registry) {
+	public GhostProxy(final RegistrationRequest request, final GridRegistry registry) {
 		super(request, registry);
 		LOG.info("Maximum sessions supported : {}", config.maxSession);
 	}

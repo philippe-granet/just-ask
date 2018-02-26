@@ -37,10 +37,11 @@ public class ServerHelper {
 		return null;
 	}
 	public static ServletContextHandler getServletContextHandler() {
-		if(getServer()==null){
+		Server server = getServer();
+		if(server==null){
 			return null;
 		}
-		Handler handler = getServer().getHandler();
+		Handler handler = server.getHandler();
 		if (handler instanceof ServletContextHandler) {
 			servletContextHandler=(ServletContextHandler) handler;
 		}

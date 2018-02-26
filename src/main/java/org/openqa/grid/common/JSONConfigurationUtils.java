@@ -32,54 +32,66 @@ import java.io.InputStreamReader;
 
 public class JSONConfigurationUtils {
 
-  /**
-   * load a JSON file from the resource or file system.
-   * 
-   * @param resource
-   * @return A JsonObject representing the passed resource argument.
-   */
-  public static JsonObject loadJSON(String resource) {
-    String propertyFileLocatorString = JSONConfigurationUtils.class.getPackage().getName().replace('.', '/') + '/' + resource;
-    InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(
-        propertyFileLocatorString);
+	private JSONConfigurationUtils() {
+		// Nothing to do
+	}
 
-    if (in == null) {
-      try {
-        in = new FileInputStream(resource);
-      } catch (FileNotFoundException e) {
-        // ignore
-      }
-    }
+	/**
+	 * load a JSON file from the resource or file system.
+	 * 
+	 * @param resource
+	 * @return A JsonObject representing the passed resource argument.
+	 */
+	public static JsonObject loadJSON(String resource) {
+		String propertyFileLocatorString = JSONConfigurationUtils.class.getPackage().getName().replace('.', '/') + '/'
+				+ resource;
+		InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(propertyFileLocatorString);
 
-    if (in == null) {
-      throw new RuntimeException(resource + " is not a valid resource.");
-    }
+		if (in == null) {
+			try {
+				in = new FileInputStream(resource);
+			} catch (FileNotFoundException e) {
+				// ignore
+			}
+		}
 
-    StringBuilder b = new StringBuilder();
-    InputStreamReader inputreader = new InputStreamReader(in);
-    BufferedReader buffreader = new BufferedReader(inputreader);
-    String line;
+		if (in == null) {
+			throw new RuntimeException(resource + " is not a valid resource.");
+		}
 
-    try {
-      while ((line = buffreader.readLine()) != null) {
-        b.append(line);
-      }
-    } catch (IOException e) {
-      throw new GridConfigurationException("Cannot read file " + resource + " , " + e.getMessage(), e);
-    } finally {
-      try {
-        buffreader.close();
-        inputreader.close();
-        in.close();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
+		StringBuilder b = new StringBuilder();
+		InputStreamReader inputreader = new InputStreamReader(in);
+		BufferedReader buffreader = new BufferedReader(inputreader);
+		String line;
 
-    try {
-      return new JsonParser().parse(b.toString()).getAsJsonObject();
-    } catch (JsonSyntaxException e) {
-      throw new GridConfigurationException("Wrong format for the JSON input : " + e.getMessage(), e);
-    }
-  }
+		try {
+			while ((line = buffreader.readLine()) != null) {
+				b.append(line);
+			}
+		} catch (IOException e) {
+			throw new GridConfigurationException("Cannot read file " + resource + " , " + e.getMessage(), e);
+		} finally {
+			try {
+				buffreader.close();
+			} catch (IOException e) {
+				// ignore
+			}
+			try {
+				inputreader.close();
+			} catch (IOException e) {
+				// ignore
+			}
+			try {
+				in.close();
+			} catch (IOException e) {
+				// ignore
+			}
+		}
+
+		try {
+			return new JsonParser().parse(b.toString()).getAsJsonObject();
+		} catch (JsonSyntaxException e) {
+			throw new GridConfigurationException("Wrong format for the JSON input : " + e.getMessage(), e);
+		}
+	}
 }
